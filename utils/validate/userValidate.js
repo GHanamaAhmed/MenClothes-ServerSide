@@ -20,3 +20,4 @@ const updateUserValidate = joi.object({
   tel: joi.pattern(new RegExp("/^(+d{1,2}s)?(?d{3})?[s.-]d{3}[s.-]d{4}$/")),
   photo: joi.string().trim().required(),
 });
+

@@ -17,3 +17,7 @@ const commentReelValidate = joi.object({
   idReel: joi.string().required(),
   toUserId: joi.string(),
 });
+const shareReelValidate = joi.object({
+  idUser: joi.string().required(),
+  idReel: joi.string().required(),
+});

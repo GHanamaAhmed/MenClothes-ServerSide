@@ -13,3 +13,16 @@ const addProductValidate = joi.object({
   showPrice: joi.boolean(),
   showPromotion: joi.boolean(),
 });
+const removeProductValidate = joi.object({
+  idProduct: joi.string().required(),
+});
+const likeProductValidate = joi.object({
+  idUser: joi.string().min(1).max(50),
+  idProduct: joi.string(),
+  video: joi.any().required(),
+});
+const commentProductValidate = joi.object({
+  idUser: joi.string().required(),
+  idProduct: joi.string().required(),
+  toUserId: joi.string(),
+});
