@@ -7,6 +7,3 @@ const addOrderValidate = joi.object({
   userId: joi.string().required(),
   productsIds: joi.array().items(productsItem),
 });
-const removeOrderValidate = joi.object({
-  idOrder: joi.string().required(),
-});

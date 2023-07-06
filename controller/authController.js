@@ -5,4 +5,4 @@ const createAccessToken = ({ id, role }) => {
 const createRefreshToken = ({ id, role }) => {
   return jwt.sign({ id, role }, process.env.REFRESH_TOKEN_SECRET);
 };
-module.exports.Signup = (req, res) => {};
+module.exports.signup = (req, res) => {};

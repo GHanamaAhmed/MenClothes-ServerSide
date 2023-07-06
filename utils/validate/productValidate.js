@@ -1,20 +1,21 @@
 const joi = require("joi");
 const addProductValidate = joi.object({
-  name: joi.string().min(1).max(50),
+  name: joi.string().min(1).max(50).required(),
   reelId: joi.string(),
   quntity: joi.number().min(0),
   price: joi.number(),
   colors: joi.array(),
   sizes: joi.array(),
-  photos: joi.array(),
+  photos: joi.any(),
   promotion: joi.number(),
-  description: joi.string().min(1),
+  description: joi.string(),
   status: joi.boolean(),
   showPrice: joi.boolean(),
   showPromotion: joi.boolean(),
 });
-const removeProductValidate = joi.object({
-  idProduct: joi.string().required(),
+const updateProductValidate = joi.object({
+  id: joi.string().required(),
+  data: addProductValidate,
 });
 const likeProductValidate = joi.object({
   idUser: joi.string().min(1).max(50),
@@ -26,3 +27,10 @@ const commentProductValidate = joi.object({
   idProduct: joi.string().required(),
   toUserId: joi.string(),
 });
+
+module.exports = {
+  addProductValidate,
+  commentProductValidate,
+  likeProductValidate,
+  updateProductValidate
+};
