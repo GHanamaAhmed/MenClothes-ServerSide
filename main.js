@@ -11,6 +11,7 @@ const passport = require("passport");
 const { dbConnect } = require("./config/dbConnect");
 const products = require("./routes/products/products");
 const users=require("./routes/users/users")
+const photos=require("./routes/photos/photos")
 
 const app = express();
 const port = 4000;
@@ -54,6 +55,8 @@ app.use("/auth", googleAuthRouter);
 app.use("/products", products);
 //Router users
 app.use("/users", users);
+
+app.use("/photos", photos);
 
 dbConnect()
   .then((res) => {
