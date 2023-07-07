@@ -53,6 +53,10 @@ const productSchema = new mongoose.Schema({
     type: [String],
     required: false,
   },
+  path:{
+    type: String,
+    required: false,
+  },
   promotion: {
     type: String,
     required: false,

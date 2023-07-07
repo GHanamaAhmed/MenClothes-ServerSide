@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Document</title>
+  </head>
+  <body>
+    <form>
+      <div class="form-group">
+        <label for=""></label>
+        <input type="text" id="name" name="name" />
+        <input
+          type="file"
+          class="form-control-file"
+          name="photos"
+          id="photos"
+          placeholder=""
+          aria-describedby="fileHelpId"
+        />
+        <small id="fileHelpId" class="form-text text-muted">Help text</small>
+        <button type="submit" class="btn btn-primary" id="submit">
+          Submit
+        </button>
+      </div>
+    </form>
+    <script>
+      const photos = document.getElementById("photos");
+      const name = document.getElementById("name");
+      const submit = document.getElementById("submit");
+      submit.addEventListener("click", (e) => {
+        e.preventDefault();
+        console.log("afs");
+        const data = new FormData();
+        data.append("photos", photos.files[0]);
+        data.set("name", name.value);
+        fetch("http://localhost:4000/products", {
+          method: "POST",
+          body: data,
+        })
+          .then((res) => res.json())
+          .then((res) => console.log(res))
+          .catch((err) => console.log(err));
+      });
+    </script>
+  </body>
+</html>

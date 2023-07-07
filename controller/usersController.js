@@ -27,7 +27,7 @@ module.exports.fetchOne = async (req, res) => {
 
 module.exports.delete = async (req, res) => {
   const { error } = removeValidate.validate(req.body);
-  if (error) return res.status(401).send(error);
+  if (error) return res.status(400).send(error);
   const user = await UserModel.findByIdAndDelete(req.body.id, { new: true });
   res.status(200).send(user);
 };

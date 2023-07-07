@@ -4,13 +4,11 @@ const products = require("../../controller/productsController");
 router
   .route("/:min?:max?")
   .get(products.fetch)
-  .post(
-    authMiddleware,
-    isAdmin,
-    products.add,
+  .post(products.upload.array("photos"), products.add)
+  .delete( products.delete)
+  .put(
     products.upload.array("photos"),
-    products.store
-  )
-  .delete(authMiddleware, isAdmin, products.delete)
-  .put(authMiddleware, isAdmin, products.update);
+    products.update
+  );
+router.delete("/photo");
 module.exports = router;

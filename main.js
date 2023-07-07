@@ -23,7 +23,7 @@ const googleAuthRouter = require("./routes/auth/googleAuth");
 const facebookAuthRouter = require("./routes/auth/facebookAuth");
 
 //basic middleware
-app.use(cors({ origin: "http://localhost:3000", credentials: true }));
+app.use(cors({ origin: "*", credentials: true }));
 app.use(helmet());
 app.use(cookieParser());
 app.use(express.json());
@@ -56,7 +56,7 @@ app.use("/products", products);
 //Router users
 app.use("/users", users);
 
-app.use("/photos", photos);
+app.use("/uploads", photos);
 
 dbConnect()
   .then((res) => {
