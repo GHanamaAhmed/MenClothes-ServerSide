@@ -4,10 +4,10 @@ const products = require("../../controller/productsController");
 router
   .route("/:min?:max?")
   .get(products.fetch)
-  .post(products.upload.array("photos"), products.add)
-  .delete( products.delete)
+  .post( products.upload.fields([{name:"photos"},{name:"thumbanil"}]), products.add)
+  .delete(products.delete)
   .put(
-    products.upload.array("photos"),
+    products.upload.fields([{name:"photos"},{name:"thumbanil"}]),
     products.update
   );
 router.delete("/photo");

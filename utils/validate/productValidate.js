@@ -22,6 +22,7 @@ const updateProductValidate = joi.object({
   colors: joi.array(),
   sizes: joi.array(),
   photos: joi.any(),
+  thumbanil: joi.any(),
   promotion: joi.number(),
   description: joi.string(),
   status: joi.boolean(),

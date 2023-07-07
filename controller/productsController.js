@@ -8,6 +8,15 @@ const {
   addProductValidate,
   updateProductValidate,
 } = require("../utils/validate/productValidate");
+const {
+  moveFileUrl,
+  removeFolderUrl,
+  removeFolder,
+  moveFile,
+  removeFile,
+  removeFileUrl,
+  deleteFolderRecursive,
+} = require("../utils/files/files");
 
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
@@ -49,16 +58,46 @@ module.exports.fetch = async (req, res) => {
 
 module.exports.add = async (req, res, next) => {
   const { error } = addProductValidate.validate(req.body);
-  if (error) return res.status(400).send(error);
+  if (error) {
+    const thumbanilPath =
+      req?.files?.thumbanil?.length &&
+      `${path.resolve(__dirname, "../")}/${
+        req?.files?.thumbanil[0]?.destination
+      }`;
+    const photosPath =
+      req?.files?.photos?.length &&
+      `${path.resolve(__dirname, "../")}/${req?.files?.photos[0]?.destination}`;
+    deleteFolderRecursive(thumbanilPath);
+    deleteFolderRecursive(photosPath);
+    return res.status(400).send(error);
+  }
+  console.log(req.file);
   const product = ProductModel({
     ...req.body,
     photos: [],
-    path: req?.files && req.files[0]?.destination,
+    path:
+      (req?.files?.thumbanil?.length &&
+        req?.files?.thumbanil[0]?.destination) ||
+      (req?.files?.photos?.length && req?.files?.photos[0]?.destination) ||
+      "",
   });
-  req?.files?.map((e) => {
-    product.photos.push(
-      `${process.env.DOMAIN_NAME}/${e.destination}/${e.filename}`
-    );
+  req?.files?.thumbanil?.map((e) => {
+    const currentpath = `${process.env.DOMAIN_NAME}/${e.destination}/${e.filename}`;
+    const newPath = `${process.env.DOMAIN_NAME}/${product.path}/${e.filename}`;
+    if (currentpath != newPath) {
+      moveFileUrl(currentpath, newPath);
+      removeFolderUrl(currentpath.replace("/" + e.filename, ""));
+    }
+    product.thumbanil = newPath;
+  });
+  req?.files?.photos?.map((e) => {
+    const currentpath = `${process.env.DOMAIN_NAME}/${e.destination}/${e.filename}`;
+    const newPath = `${process.env.DOMAIN_NAME}/${product.path}/${e.filename}`;
+    if (currentpath != newPath) {
+      moveFileUrl(currentpath, newPath);
+      removeFolderUrl(currentpath.replace("/" + e.filename, ""));
+    }
+    product.photos.push(newPath);
   });
   await product.save();
   res.status(200).send(product);
@@ -72,13 +111,10 @@ module.exports.delete = async (req, res) => {
   const product = await ProductModel.findByIdAndDelete(req.body.id, {
     new: true,
   });
-  const pathName = path.resolve(__dirname, "../" + product.path);
+  const pathName = path.resolve(__dirname, "../" + product?.path);
   if (fs.existsSync(pathName) && product?.path) {
     try {
-      fs.rmSync(path.resolve(__dirname, "../" + product.path), {
-        recursive: true,
-        force: true,
-      });
+      removeFolder(pathName);
     } catch (error) {
       return res.status(500).send(error);
     }
@@ -87,14 +123,25 @@ module.exports.delete = async (req, res) => {
 };
 
 module.exports.update = async (req, res, next) => {
-  const body=req.body
+  const body = req.body;
   const { error } = updateProductValidate.validate(body);
-  if (error) return res.status(400).send(error);
-  const id=body.id
-  delete body.id
-  const prevPhoto = await ProductModel.findById(id).then(
-    (res) => res.photos
-  );
+  if (error) {
+    console.log(req.files);
+    const thumbanilPath =
+      req?.files?.thumbanil?.length &&
+      `${path.resolve(__dirname, "../")}/${
+        req?.files?.thumbanil[0]?.destination
+      }`;
+    const photosPath =
+      req?.files?.photos?.length &&
+      `${path.resolve(__dirname, "../")}/${req?.files?.photos[0]?.destination}`;
+    deleteFolderRecursive(thumbanilPath);
+    deleteFolderRecursive(photosPath);
+    return res.status(400).send(error);
+  }
+  const id = body.id;
+  delete body.id;
+  const prevPhoto = await ProductModel.findById(id).then((res) => res.photos);
   const product = await ProductModel.findByIdAndUpdate(
     id,
     {
@@ -103,7 +150,18 @@ module.exports.update = async (req, res, next) => {
     { new: true }
   );
   product.photos = prevPhoto;
-  req?.files?.map((e) => {
+  req?.files?.thumbanil?.map((e) => {
+    product.thumbanil && removeFileUrl(product.thumbanil);
+    product.thumbanil = `${process.env.DOMAIN_NAME}/${product.path}/${e.filename}`;
+    let currentPath = path.resolve(
+      __dirname,
+      `../${e.destination}/${e.filename}`
+    );
+    let newPath = path.resolve(__dirname, `../${product.path}/${e.filename}`);
+    moveFile(currentPath, newPath);
+    removeFolder(currentPath.replace(e.filename, ""));
+  });
+  req?.files?.photos?.map((e) => {
     product.photos.push(
       `${process.env.DOMAIN_NAME}/${product.path}/${e.filename}`
     );
@@ -111,15 +169,9 @@ module.exports.update = async (req, res, next) => {
       __dirname,
       `../${e.destination}/${e.filename}`
     );
-    let newPath = path.resolve(
-      __dirname,
-      `../${product.path}/${e.filename}`
-    );
-    fs.rename(currentPath, newPath, function (err) {
-      if (err) {
-        res.status(500).send(err);
-      }
-    });
+    let newPath = path.resolve(__dirname, `../${product.path}/${e.filename}`);
+    moveFile(currentPath, newPath);
+    removeFolder(currentPath.replace(e.filename, ""));
   });
   await product.save();
   res.status(200).send(product);
