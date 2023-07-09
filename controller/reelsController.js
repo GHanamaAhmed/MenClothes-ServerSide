@@ -17,6 +17,7 @@ const {
   removeFile,
 } = require("../utils/files/files");
 const { addReelValidate } = require("../utils/validate/reelValidate");
+const likeModel = require("../models/likeModel");
 
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
@@ -87,7 +88,7 @@ module.exports.delete = async (req, res) => {
     new: true,
   });
   removeFileUrl(reel.video);
-
+  await likeModel.findOneAndDelete({postId:reel._id,type:"reel"})
   res.status(200).send(reel);
 };
 

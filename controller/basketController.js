@@ -9,16 +9,17 @@ const {
 } = require("../utils/validate/genralValidate");
 const { default: mongoose } = require("mongoose");
 const basketModel = require("../models/basketModel");
+const { fetchBasketValidate } = require("../utils/validate/basketValidate");
 //export methods
 
 //admin methods
-module.exports.fetchLikePost = async (req, res) => {
-  const { error } = fetchLikeValidate.validate(req.body);
+module.exports.fetchBasketProduct = async (req, res) => {
+  const { error } = fetchBasketValidate.validate(req.body);
   if (error) return res.status(400).send(error);
-  const { id, type, min, max } = req.body;
-  const users = await likeModel
+  const { id, min, max } = req.body;
+  const users = await basketModel
     .aggregate([
-      { $match: { userId: new mongoose.Types.ObjectId(id), type: type } },
+      { $match: { productId: new mongoose.Types.ObjectId(id) } },
       {
         $lookup: {
           from: "users",
@@ -28,30 +29,39 @@ module.exports.fetchLikePost = async (req, res) => {
         },
       },
       { $project: { users: 1, _id: 0 } },
+      {$unwind:"$users"},
+      {$replaceRoot:{
+        newRoot:"$users"
+      }}
     ])
     .then((res) => res.slice(min, max));
-  return res.status(200).send(users[0]?.users);
+  return res.status(200).send(users);
 };
 
 module.exports.fetchLikeUser = async (req, res) => {
-  const { error } = fetchLikeValidate.validate(req.body);
+  const { error } = fetchBasketValidate.validate(req.body);
   if (error) return res.status(400).send(error);
-  const { id, type, min, max } = req.body;
-  const prodcts = await likeModel
+  const { id,  min, max } = req.body;
+  const prodcts = await basketModel
     .aggregate([
-      { $match: { postId: new mongoose.Types.ObjectId(id), type: type } },
+      { $match: { userId: new mongoose.Types.ObjectId(id)} },
       {
         $lookup: {
           from: "products",
-          localField: "postId",
+          localField: "productId",
           foreignField: "_id",
           as: "products",
         },
       },
       { $project: { products: 1, _id: 0 } },
+      {$unwind:"$products"},{
+        $replaceRoot:{
+          newRoot:"$products"
+        }
+      }
     ])
     .then((res) => res.slice(min, max));
-  return res.status(200).send(prodcts[0]?.products);
+  return res.status(200).send(prodcts);
 };
 
 //user methods

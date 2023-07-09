@@ -71,15 +71,15 @@ productSchema.pre("save", function (next) {
       this.status = false;
     }
   }
-  if (this.showPrice === null || this.showPrice === undefined) {
-    if (this.price !== null || this.price !== undefined) {
+  if (this.showPrice === undefined) {
+    if ( this.price === undefined) {
       this.showPrice = false;
     } else {
       this.showPrice = true;
     }
   }
-  if (this.showPromotion === null || this.showPromotion === undefined) {
-    if (this.promotion !== null || this.promotion !== undefined) {
+  if (this.showPromotion === undefined) {
+    if (this.promotion === undefined) {
       this.showPromotion = false;
     } else {
       this.showPromotion = true;

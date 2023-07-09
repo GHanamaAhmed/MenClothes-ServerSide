@@ -14,7 +14,7 @@ module.exports.fetchLikePost = async (req, res) => {
   const { id, type, min, max } = req.body;
   const users = await likeModel
     .aggregate([
-      { $match: { userId: new mongoose.Types.ObjectId(id), type: type } },
+      { $match: { postId: new mongoose.Types.ObjectId(id), type: type } },
       {
         $lookup: {
           from: "users",
@@ -24,9 +24,13 @@ module.exports.fetchLikePost = async (req, res) => {
         },
       },
       { $project: { users: 1, _id: 0 } },
+      {$unwind:"$users"},
+      {$replaceRoot:{
+        newRoot:"$users"
+      }}
     ])
     .then((res) => res.slice(min, max));
-  return res.status(200).send(users[0]?.users);
+  return res.status(200).send(users);
 };
 
 module.exports.fetchLikeUser = async (req, res) => {
@@ -35,7 +39,7 @@ module.exports.fetchLikeUser = async (req, res) => {
   const { id, type, min, max } = req.body;
   const prodcts = await likeModel
     .aggregate([
-      { $match: { postId: new mongoose.Types.ObjectId(id), type: type } },
+      { $match: { userId: new mongoose.Types.ObjectId(id), type: type } },
       {
         $lookup: {
           from: "products",
@@ -45,9 +49,15 @@ module.exports.fetchLikeUser = async (req, res) => {
         },
       },
       { $project: { products: 1, _id: 0 } },
+      { $unwind: "$products" },
+      {
+        $replaceRoot: {
+          newRoot: "$products"
+        }
+      }
     ])
     .then((res) => res.slice(min, max));
-  return res.status(200).send(prodcts[0]?.products);
+  return res.status(200).send(prodcts);
 };
 
 //user methods
@@ -58,7 +68,7 @@ module.exports.like = async (req, res) => {
   if (like) {
     return res.status(400).send("you have been liked");
   }
-  const newLike =new likeModel({
+  const newLike = new likeModel({
     ...req.body,
     userId: req.user._id,
   });

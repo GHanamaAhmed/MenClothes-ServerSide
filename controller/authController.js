@@ -1,8 +1,5 @@
-const jwt = require("jsonwebtoken");
-const createAccessToken = ({ id, role }) => {
-  return jwt.sign({ id, role }, process.env.ACCESS_TOKEN_SECRET);
+
+
+module.exports.auth = (req, res) => {
+  res.status(200).send()
 };
-const createRefreshToken = ({ id, role }) => {
-  return jwt.sign({ id, role }, process.env.REFRESH_TOKEN_SECRET);
-};
-module.exports.signup = (req, res) => {};

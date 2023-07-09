@@ -6,7 +6,10 @@ router
   .get(products.fetch)
   .post(
     products.initialize,
-    products.upload.fields([{ name: "photos" }, { name: "thumbanil" }]),
+    products.upload.fields([
+      { name: "photos" },
+      { name: "thumbanil", maxCount: 1 },
+    ]),
     products.add
   )
   .delete(products.delete)
@@ -14,7 +17,10 @@ router
     authMiddleware,
     isAdmin,
     products.initialize,
-    products.upload.fields([{ name: "photos" }, { name: "thumbanil" }]),
+    products.upload.fields([
+      { name: "photos" },
+      { name: "thumbanil", maxCount: 1 },
+    ]),
     products.update
   );
 module.exports = router;

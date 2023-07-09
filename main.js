@@ -9,6 +9,7 @@ const MongoStore = require("connect-mongo");
 const passport = require("passport");
 
 const { dbConnect } = require("./config/dbConnect");
+const auth = require("./routes/auth/auth");
 const products = require("./routes/products/products");
 const users = require("./routes/users/users");
 const photos = require("./routes/photos/photos");
@@ -39,8 +40,8 @@ app.use(bodyParser.urlencoded({ extended: true }));
 app.use(
   session({
     secret: process.env.SECRET_SESSION,
-    resave: true,
-    saveUninitialized: true,
+    resave: false,
+    saveUninitialized: false,
     store: MongoStore.create({
       collectionName: "sessions",
       mongoUrl: "mongodb://127.0.0.1:27017/FRIHAECOMMERCE",
@@ -59,6 +60,7 @@ app.use(passport.session());
 
 //Routes auth
 app.use("/auth", googleAuthRouter);
+app.use("/auth", auth);
 //Routes products
 app.use("/products", products);
 //Router users

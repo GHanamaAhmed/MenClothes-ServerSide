@@ -1,6 +1,6 @@
 const joi = require("joi");
 const addProductValidate = joi.object({
-  name: joi.string().max(50).required(),
+  name: joi.string().max(100).required(),
   reelId: joi.string(),
   quntity: joi.number().min(0),
   price: joi.number(),
@@ -15,14 +15,14 @@ const addProductValidate = joi.object({
 });
 const updateProductValidate = joi.object({
   id: joi.string().required(),
-  name: joi.string().max(50),
+  name: joi.string().max(100),
   reelId: joi.string(),
   quntity: joi.number().min(0),
   price: joi.number(),
   colors: joi.array(),
   sizes: joi.array(),
   photos: joi.any(),
-  thumbanil: joi.any(),
+  thumbanil: joi.any().required(),
   promotion: joi.number(),
   description: joi.string(),
   status: joi.boolean(),

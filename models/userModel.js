@@ -36,9 +36,6 @@ const userSchema = new mongoose.Schema({
   sex: {
     type: String,
   },
-  token: {
-    type: [String],
-  },
 });
 
 module.exports = mongoose.model("user", userSchema);

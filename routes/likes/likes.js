@@ -5,6 +5,6 @@ router
   .route("/")
   .post(authMiddleware, likes.like)
   .delete(authMiddleware, likes.unLike);
-router.route("/product").post(authMiddleware, isAdmin, likes.fetchLikePost);
-router.route("/user").post(authMiddleware, isAdmin, likes.fetchLikeUser);
+router.route("/product").post(authMiddleware, likes.fetchLikePost);
+router.route("/user").post(authMiddleware,  likes.fetchLikeUser);
 module.exports = router;

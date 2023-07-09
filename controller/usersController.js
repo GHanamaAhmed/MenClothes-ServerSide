@@ -17,14 +17,13 @@ module.exports.fetch = async (req, res) => {
   res.status(200).send(userSlice);
 };
 module.exports.fetchOne = async (req, res) => {
-  const isAdmin = req.user.role == "admin";
-  if (!req.body.id || !isAdmin) {
+  const isAdmin = req?.user?.role == "admin";
+  if (!req.body?.id || !isAdmin) {
     return res.status(200).send(req.user);
   }
   const user=await UserModel.findById(req.body.id)
   res.status(200).send(user);
 };
-
 module.exports.delete = async (req, res) => {
   const { error } = removeValidate.validate(req.body);
   if (error) return res.status(400).send(error);

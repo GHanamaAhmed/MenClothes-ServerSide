@@ -20,6 +20,7 @@ const {
 } = require("../utils/files/files");
 const likeModel = require("../models/likeModel");
 const mongoose = require("mongoose");
+const basketModel = require("../models/basketModel");
 
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
@@ -69,8 +70,7 @@ module.exports.initialize = async (req, res, next) => {
 
 module.exports.fetch = async (req, res) => {
   const { max, min } = req.params;
-  const userId = req.user._id;
-  console.log(userId);
+  const userId = req?.user?._id;
   const products = await ProductModel.aggregate([
     {
       $lookup: {
@@ -129,7 +129,7 @@ module.exports.fetch = async (req, res) => {
 
 module.exports.add = async (req, res, next) => {
   const { error } = addProductValidate.validate(req.body);
-  if (error) {
+  if (error||!req.files?.thumbanil) {
     let delPath;
     if (req.files?.photos?.length) {
       delPath = baseUrl() + "/" + req.files?.photos[0]?.destination;
@@ -137,7 +137,7 @@ module.exports.add = async (req, res, next) => {
       delPath = baseUrl() + "/" + req.files?.thumbanil[0]?.destination;
     }
     removeFolder(delPath);
-    return res.status(400).send(error);
+    return res.status(400).send(error||"thumbanil field is require!");
   }
   const product = ProductModel({
     ...req.body,
@@ -172,6 +172,8 @@ module.exports.delete = async (req, res) => {
       return res.status(500).send(error);
     }
   }
+  await likeModel.findOneAndDelete({postId:product._id,type:"product"})
+  await basketModel.findOneAndDelete({productId:product._id})
   res.status(200).send(product);
 };
 
