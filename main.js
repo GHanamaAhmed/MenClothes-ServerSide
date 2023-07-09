@@ -10,20 +10,28 @@ const passport = require("passport");
 
 const { dbConnect } = require("./config/dbConnect");
 const products = require("./routes/products/products");
-const users=require("./routes/users/users")
-const photos=require("./routes/photos/photos")
+const users = require("./routes/users/users");
+const photos = require("./routes/photos/photos");
+const reels = require("./routes/reels/reels");
+const likes = require("./routes/likes/likes");
+const basket = require("./routes/basket/basket");
 
 const app = express();
 const port = 4000;
-
-
 
 //route authentication
 const googleAuthRouter = require("./routes/auth/googleAuth");
 const facebookAuthRouter = require("./routes/auth/facebookAuth");
 
+require("./models/basketModel");
+require("./models/commentModel");
+require("./models/likeModel");
+require("./models/orderModel");
+require("./models/productModel");
+require("./models/reelModel");
+require("./models/userModel");
 //basic middleware
-app.use(cors({ origin: "*", credentials: true }));
+app.use(cors({ origin: "http://localhost:3000", credentials: true }));
 app.use(helmet());
 app.use(cookieParser());
 app.use(express.json());
@@ -55,8 +63,14 @@ app.use("/auth", googleAuthRouter);
 app.use("/products", products);
 //Router users
 app.use("/users", users);
-
+//Route uploads
 app.use("/uploads", photos);
+//Route reels
+app.use("/reels", reels);
+//Route likes
+app.use("/likes", likes);
+//Route basket
+app.use("/basket", basket);
 
 dbConnect()
   .then((res) => {

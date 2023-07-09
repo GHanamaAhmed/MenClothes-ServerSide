@@ -4,14 +4,6 @@ const reelSchema = new mongoose.Schema({
     type: String,
     required: true,
   },
-  likesIds: {
-    type: [mongoose.Schema.Types.ObjectId],
-    required: false,
-  },
-  commentsIds: {
-    type: [mongoose.Schema.Types.ObjectId],
-    required: false,
-  },
   createAt: {
     type: Date,
     required: false,
@@ -20,10 +12,12 @@ const reelSchema = new mongoose.Schema({
   viewsUsersIds: {
     type: [mongoose.Schema.Types.ObjectId],
     required: false,
+    ref:"user"
   },
   productId: {
     type: mongoose.Schema.Types.ObjectId,
     required: false,
+    ref:"product"
   },
   video: {
     type: String,
@@ -32,6 +26,7 @@ const reelSchema = new mongoose.Schema({
   sharesUserIds: {
     type: [mongoose.Schema.Types.ObjectId],
     required: false,
+    ref:"user"
   },
 });
 module.exports = mongoose.model("reel", reelSchema);

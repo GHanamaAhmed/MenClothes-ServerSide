@@ -39,15 +39,6 @@ const userSchema = new mongoose.Schema({
   token: {
     type: [String],
   },
-  commentsIds: {
-    type: [mongoose.Schema.Types.ObjectId],
-  },
-  likesIds: {
-    type: [mongoose.Schema.Types.ObjectId],
-  },
-  basketsIds: {
-    type: [mongoose.Schema.Types.ObjectId],
-  },
 });
 
 module.exports = mongoose.model("user", userSchema);

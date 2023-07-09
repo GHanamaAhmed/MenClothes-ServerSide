@@ -1,18 +1,14 @@
 const mongoose = require("mongoose");
-const likeSchema = new mongoose.Schema({
+const basketSchema = new mongoose.Schema({
   userId: {
     type: mongoose.Schema.Types.ObjectId,
     required: true,
     ref: "user",
   },
-  type: {
-    type: String,
-    enum: ["product", "reel"],
-    default: "product",
-  },
-  postId: {
+  productId: {
     type: mongoose.Schema.Types.ObjectId,
     required: false,
+    ref: "product",
   },
   createAt: {
     type: Date,
@@ -20,4 +16,5 @@ const likeSchema = new mongoose.Schema({
     default: Date.now(),
   },
 });
-module.exports = mongoose.model("like", likeSchema);
+
+module.exports = mongoose.model("basket", basketSchema);

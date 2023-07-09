@@ -3,19 +3,27 @@ const commentSchema = new mongoose.Schema({
   userId: {
     type: mongoose.Schema.Types.ObjectId,
     required: true,
+    ref:"user"
   },
   toUserId: {
     type: mongoose.Schema.Types.ObjectId,
     required: false,
+    ref:"user"
   },
   type: {
     type: String,
     enum:["product","reel"],
     default:"product"
   },
-  postId: {
+  reelId: {
     type: mongoose.Schema.Types.ObjectId,
-    required: true,
+    required: false,
+    ref:"product"
+  },
+  productId: {
+    type: mongoose.Schema.Types.ObjectId,
+    required: false,
+    ref:"product"
   },
   repndesIds: {
     type: [mongoose.Schema.Types.ObjectId],

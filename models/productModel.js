@@ -4,14 +4,6 @@ const productSchema = new mongoose.Schema({
     type: String,
     required: true,
   },
-  likesIds: {
-    type: [mongoose.Schema.Types.ObjectId],
-    required: false,
-  },
-  commentsIds: {
-    type: [mongoose.Schema.Types.ObjectId],
-    required: false,
-  },
   createAt: {
     type: Date,
     required: false,
@@ -25,13 +17,10 @@ const productSchema = new mongoose.Schema({
     type: String,
     required: false,
   },
-  basketsIds: {
-    type: [mongoose.Schema.Types.ObjectId],
-    required: false,
-  },
   reelId: {
     type: mongoose.Schema.Types.ObjectId,
     required: false,
+    ref: "reel",
   },
   colors: {
     type: [String],
@@ -41,23 +30,15 @@ const productSchema = new mongoose.Schema({
     type: [String],
     required: false,
   },
-  puchaseUsersIds: {
-    type: [mongoose.Schema.Types.ObjectId],
-    required: false,
-  },
-  ordersIds: {
-    type: [mongoose.Schema.Types.ObjectId],
-    required: false,
-  },
   photos: {
     type: [String],
     required: false,
   },
-  thumbanil:{
+  thumbanil: {
     type: String,
     required: false,
   },
-  path:{
+  path: {
     type: String,
     required: false,
   },

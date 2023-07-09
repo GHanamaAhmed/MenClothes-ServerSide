@@ -71,10 +71,16 @@ const removeFolder = (route) => {
   if (redUrl.includes(route)) return;
   if (fs.existsSync(route)) {
     try {
-      fs.rmSync(route, {
-        recursive: true,
-        force: true,
-      });
+      fs.rm(
+        route,
+        {
+          recursive: true,
+          force: true,
+        },
+        (err) => {
+          console.log(err);
+        }
+      );
     } catch (error) {
       console.log(error);
     }
@@ -93,8 +99,15 @@ const deleteFolderRecursive = function (path) {
         fs.unlinkSync(curPath);
       }
     });
+    console.log("ff");
+    fs.rm(path, { recursive: true, force: true }, (err) => {
+      console.log(err);
+    });
+    console.log("ds");
   }
 };
+
+const baseUrl = () => ph.resolve(__dirname, "../../");
 module.exports = {
   removeFileUrl,
   removeFolderUrl,
@@ -103,4 +116,6 @@ module.exports = {
   removeFolder,
   moveFile,
   deleteFolderRecursive,
+  baseUrl,
+  convertUrlToPath,
 };

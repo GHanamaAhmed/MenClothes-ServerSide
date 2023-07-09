@@ -1,13 +1,18 @@
 const joi = require("joi");
 const addReelValidate = joi.object({
-  name: joi.string().min(1).max(50),
+  name: joi.string().max(50),
   productId: joi.string(),
-  video: joi.any().required(),
+  video: joi.any(),
+});
+const updateReelValidate = joi.object({
+  id: joi.string().required(),
+  name: joi.string().max(50),
+  productId: joi.string(),
+  video: joi.any(),
 });
 const likeReelValidate = joi.object({
-  idUser: joi.string().min(1).max(50),
-  idReel: joi.string(),
-  video: joi.any().required(),
+  idUser: joi.string().required(),
+  idReel: joi.string().required(),
 });
 const commentReelValidate = joi.object({
   idUser: joi.string().required(),
@@ -18,3 +23,10 @@ const shareReelValidate = joi.object({
   idUser: joi.string().required(),
   idReel: joi.string().required(),
 });
+module.exports = {
+  addReelValidate,
+  updateReelValidate,
+  likeReelValidate,
+  commentReelValidate,
+  shareReelValidate,
+};

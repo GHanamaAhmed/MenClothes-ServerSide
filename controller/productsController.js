@@ -16,32 +16,50 @@ const {
   removeFile,
   removeFileUrl,
   deleteFolderRecursive,
+  baseUrl,
 } = require("../utils/files/files");
+const likeModel = require("../models/likeModel");
+const mongoose = require("mongoose");
 
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
-    const folderName = uuid();
     if (
       !fs.existsSync(
-        path.resolve(__dirname, "../uploads/products/" + folderName)
+        path.resolve(__dirname, "../uploads/products/" + req.folderName)
       )
     ) {
       try {
         fs.mkdirSync(
-          path.resolve(__dirname, "../uploads/products/" + folderName)
+          path.resolve(__dirname, "../uploads/products/" + req.folderName)
         );
       } catch (error) {
         return cb(error);
       }
     }
-    cb(null, `uploads/products/` + folderName);
+    cb(null, `uploads/products/` + req.folderName);
   },
   filename: (req, file, cb) => {
     const fileName = uuid() + "-" + file.originalname;
     cb(null, fileName);
   },
 });
-const upload = multer({ storage: storage });
+const upload = multer({
+  storage: storage,
+  fileFilter: (req, file, cb) => {
+    const mimeType = file.mimetype;
+    if (
+      mimeType == "image/bmp" ||
+      mimeType == "image/x-png" ||
+      mimeType == "image/png" ||
+      mimeType == "image/jpeg" ||
+      mimeType == "image/gif"
+    ) {
+      cb(null, true);
+    } else {
+      cb("the picture must on of bmb ,jpeg ,x-png ,png ,gif");
+    }
+  },
+});
 
 //exports methods
 module.exports.initialize = async (req, res, next) => {
@@ -51,53 +69,88 @@ module.exports.initialize = async (req, res, next) => {
 
 module.exports.fetch = async (req, res) => {
   const { max, min } = req.params;
-  const products = await ProductModel.find({}).limit(max);
-  const products2 = products.slice(min);
+  const userId = req.user._id;
+  console.log(userId);
+  const products = await ProductModel.aggregate([
+    {
+      $lookup: {
+        from: "likes",
+        let: { productId: "$_id" },
+        pipeline: [
+          {
+            $match: {
+              $expr: {
+                $and: [
+                  { $eq: ["$postId", "$$productId"] },
+                  { $eq: ["$userId", new mongoose.Types.ObjectId(userId)] },
+                ],
+              },
+            },
+          },
+        ],
+        as: "likes",
+      },
+    },
+    {
+      $lookup: {
+        from: "baskets",
+        let: { productId: "$_id" },
+        pipeline: [
+          {
+            $match: {
+              $expr: {
+                $and: [
+                  { $eq: ["$productId", "$$productId"] },
+                  { $eq: ["$userId", new mongoose.Types.ObjectId(userId)] },
+                ],
+              },
+            },
+          },
+        ],
+        as: "baskets",
+      },
+    },
+    {
+      $addFields: {
+        isLike: { $gt: [{ $size: "$likes" }, 0] },
+        isSave: { $gt: [{ $size: "$baskets" }, 0] },
+      },
+    },
+    {
+      $project: {
+        users: 0,
+        likes: 0,
+      },
+    },
+  ]);
+  const products2 = products.slice(min, max);
   res.status(200).send(products2);
 };
 
 module.exports.add = async (req, res, next) => {
   const { error } = addProductValidate.validate(req.body);
   if (error) {
-    const thumbanilPath =
-      req?.files?.thumbanil?.length &&
-      `${path.resolve(__dirname, "../")}/${
-        req?.files?.thumbanil[0]?.destination
-      }`;
-    const photosPath =
-      req?.files?.photos?.length &&
-      `${path.resolve(__dirname, "../")}/${req?.files?.photos[0]?.destination}`;
-    deleteFolderRecursive(thumbanilPath);
-    deleteFolderRecursive(photosPath);
+    let delPath;
+    if (req.files?.photos?.length) {
+      delPath = baseUrl() + "/" + req.files?.photos[0]?.destination;
+    } else if (req.files?.thumbanil?.length) {
+      delPath = baseUrl() + "/" + req.files?.thumbanil[0]?.destination;
+    }
+    removeFolder(delPath);
     return res.status(400).send(error);
   }
-  console.log(req.file);
   const product = ProductModel({
     ...req.body,
     photos: [],
-    path:
-      (req?.files?.thumbanil?.length &&
-        req?.files?.thumbanil[0]?.destination) ||
-      (req?.files?.photos?.length && req?.files?.photos[0]?.destination) ||
-      "",
+    path: req.folderName && "uploads/products/" + req.folderName,
   });
   req?.files?.thumbanil?.map((e) => {
-    const currentpath = `${process.env.DOMAIN_NAME}/${e.destination}/${e.filename}`;
-    const newPath = `${process.env.DOMAIN_NAME}/${product.path}/${e.filename}`;
-    if (currentpath != newPath) {
-      moveFileUrl(currentpath, newPath);
-      removeFolderUrl(currentpath.replace("/" + e.filename, ""));
-    }
-    product.thumbanil = newPath;
+    const Path = `${process.env.DOMAIN_NAME}/${product.path}/${e.filename}`;
+    product.thumbanil = Path;
   });
   req?.files?.photos?.map((e) => {
-    const currentpath = `${process.env.DOMAIN_NAME}/${e.destination}/${e.filename}`;
-    const newPath = `${process.env.DOMAIN_NAME}/${product.path}/${e.filename}`;
-    if (currentpath != newPath) {
-      moveFileUrl(currentpath, newPath);
-      removeFolderUrl(currentpath.replace("/" + e.filename, ""));
-    }
-    product.photos.push(newPath);
+    const Path = `${process.env.DOMAIN_NAME}/${product.path}/${e.filename}`;
+    product.photos.push(Path);
   });
   await product.save();
   res.status(200).send(product);
@@ -122,21 +175,17 @@ module.exports.delete = async (req, res) => {
   res.status(200).send(product);
 };
 
-module.exports.update = async (req, res, next) => {
+module.exports.update = async (req, res) => {
   const body = req.body;
   const { error } = updateProductValidate.validate(body);
   if (error) {
-    console.log(req.files);
-    const thumbanilPath =
-      req?.files?.thumbanil?.length &&
-      `${path.resolve(__dirname, "../")}/${
-        req?.files?.thumbanil[0]?.destination
-      }`;
-    const photosPath =
-      req?.files?.photos?.length &&
-      `${path.resolve(__dirname, "../")}/${req?.files?.photos[0]?.destination}`;
-    deleteFolderRecursive(thumbanilPath);
-    deleteFolderRecursive(photosPath);
+    let delPath;
+    if (req.files?.photos?.length) {
+      delPath = baseUrl() + "/" + req.files?.photos[0]?.destination;
+    } else if (req.files?.thumbanil?.length) {
+      delPath = baseUrl() + "/" + req.files?.thumbanil[0]?.destination;
+    }
+    removeFolder(delPath);
     return res.status(400).send(error);
   }
   const id = body.id;
@@ -159,7 +208,6 @@ module.exports.update = async (req, res, next) => {
     );
     let newPath = path.resolve(__dirname, `../${product.path}/${e.filename}`);
     moveFile(currentPath, newPath);
-    removeFolder(currentPath.replace(e.filename, ""));
   });
   req?.files?.photos?.map((e) => {
     product.photos.push(
@@ -171,8 +219,9 @@ module.exports.update = async (req, res, next) => {
     );
     let newPath = path.resolve(__dirname, `../${product.path}/${e.filename}`);
     moveFile(currentPath, newPath);
-    removeFolder(currentPath.replace(e.filename, ""));
   });
+  req.folderName &&
+    removeFolder(baseUrl() + "/uploads/products/" + req.folderName);
   await product.save();
   res.status(200).send(product);
 };
