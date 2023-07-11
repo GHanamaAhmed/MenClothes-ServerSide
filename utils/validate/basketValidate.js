@@ -1,9 +1,10 @@
 const joi = require("joi");
+const { objectId } = require("./validateObjctId");
 const handleBasketValidate = joi.object({
-  id: joi.string().required(),
+  id: objectId.required(),
 });
 const fetchBasketValidate = joi.object({
-  id: joi.string().required(),
+  id: objectId.required(),
   min: joi.number(),
   max: joi.number(),
 });

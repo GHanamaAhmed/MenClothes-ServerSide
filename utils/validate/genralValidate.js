@@ -1,9 +1,10 @@
 const joi = require("joi");
+const { objectId } = require("./validateObjctId");
 const removeValidate = joi.object({
-  id: joi.string().required(),
+  id: objectId.required(),
 });
 const fetchOneValidate = joi.object({
-  id: joi.string().required(),
+  id: objectId.required(),
 });
 const photoValidate = joi.object({
   type:joi.string().required(),

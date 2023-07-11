@@ -16,6 +16,7 @@ const photos = require("./routes/photos/photos");
 const reels = require("./routes/reels/reels");
 const likes = require("./routes/likes/likes");
 const basket = require("./routes/basket/basket");
+const comments = require("./routes/comments/comments");
 
 const app = express();
 const port = 4000;
@@ -73,6 +74,8 @@ app.use("/reels", reels);
 app.use("/likes", likes);
 //Route basket
 app.use("/basket", basket);
+//Route comments
+app.use("/comments", comments);
 
 dbConnect()
   .then((res) => {

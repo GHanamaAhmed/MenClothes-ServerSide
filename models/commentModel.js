@@ -3,36 +3,28 @@ const commentSchema = new mongoose.Schema({
   userId: {
     type: mongoose.Schema.Types.ObjectId,
     required: true,
-    ref:"user"
+    ref: "user",
   },
-  toUserId: {
+  toUserCommentId: {
     type: mongoose.Schema.Types.ObjectId,
     required: false,
-    ref:"user"
+    ref: "user",
   },
   type: {
     type: String,
-    enum:["product","reel"],
-    default:"product"
+    enum: ["product", "reel"],
+    default: "product",
   },
-  reelId: {
+  postId: {
     type: mongoose.Schema.Types.ObjectId,
     required: false,
-    ref:"product"
-  },
-  productId: {
-    type: mongoose.Schema.Types.ObjectId,
-    required: false,
-    ref:"product"
-  },
-  repndesIds: {
-    type: [mongoose.Schema.Types.ObjectId],
-    required: false,
+    ref: "product",
   },
   createAt: {
     type: Date,
     required: false,
     default: Date.now(),
   },
+  replies: [this],
 });
 module.exports = mongoose.model("comment", commentSchema);
