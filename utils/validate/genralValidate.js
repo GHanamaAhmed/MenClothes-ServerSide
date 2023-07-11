@@ -9,7 +9,7 @@ const fetchOneValidate = joi.object({
 const photoValidate = joi.object({
   type:joi.string().required(),
   folderName:joi.string().required(),
-  fileName:joi.string().required(),
+  fileName:joi.string(),
 });
 
 module.exports = {

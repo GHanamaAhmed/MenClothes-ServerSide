@@ -16,7 +16,10 @@ const {
   convertUrlToPath,
   removeFile,
 } = require("../utils/files/files");
-const { addReelValidate } = require("../utils/validate/reelValidate");
+const {
+  addReelValidate,
+  updateReelValidate,
+} = require("../utils/validate/reelValidate");
 const likeModel = require("../models/likeModel");
 
 const storage = multer.diskStorage({
@@ -33,14 +36,14 @@ const upload = multer({
   fileFilter: (req, file, cb) => {
     const mimeType = file.mimetype;
     if (
-      mimeType == "video/x-flv" ||
-      mimeType == "video/mp4" ||
-      mimeType == "application/x-mpegURL" ||
-      mimeType == "video/MP2T" ||
-      mimeType == "video/3gpp" ||
-      mimeType == "video/quicktime" ||
-      mimeType == "video/x-msvideo" ||
-      mimeType == "video/x-ms-wmv"
+      // mimeType == "video/x-flv" ||
+      mimeType == "video/mp4"
+      // mimeType == "application/x-mpegURL" ||
+      // mimeType == "video/MP2T" ||
+      // mimeType == "video/3gpp" ||
+      // mimeType == "video/quicktime" ||
+      // mimeType == "video/x-msvideo" ||
+      // mimeType == "video/x-ms-wmv"
     ) {
       cb(null, true);
     } else {
@@ -55,7 +58,7 @@ module.exports.fetch = async (req, res) => {
   const { max, min } = req.params;
   const reels = await ReelModel.find({}).limit(max);
   const reels2 = reels.slice(min);
-  res.status(200).send(reels2);
+  return res.status(200).send(reels2);
 };
 
 module.exports.add = async (req, res, next) => {
@@ -68,7 +71,7 @@ module.exports.add = async (req, res, next) => {
     }
     return res.status(400).send(error || "video is require!");
   }
-  const reel = ReelModel({
+  const reel =new ReelModel({
     ...req.body,
   });
   if (req.file) {
@@ -76,7 +79,7 @@ module.exports.add = async (req, res, next) => {
     reel.video = Path;
   }
   await reel.save();
-  res.status(200).send(reel);
+  return res.status(200).send(reel);
 };
 
 module.exports.upload = upload;
@@ -87,14 +90,15 @@ module.exports.delete = async (req, res) => {
   const reel = await ReelModel.findByIdAndDelete(req.body.id, {
     new: true,
   });
-  removeFileUrl(reel.video);
-  await likeModel.findOneAndDelete({postId:reel._id,type:"reel"})
-  res.status(200).send(reel);
+  if (!reel) return res.status(404).send("reel dont exist!");
+  removeFileUrl(reel?.video);
+  await likeModel.findOneAndDelete({ postId: reel?._id, type: "reel" });
+  return res.status(200).send(reel);
 };
 
 module.exports.update = async (req, res, next) => {
   const body = req.body;
-  const { error } = updateProductValidate.validate(body);
+  const { error } = updateReelValidate.validate(body);
   if (error) {
     if (req.file) {
       const delPath = baseUrl() + "/" + req.file?.destination;
@@ -102,8 +106,8 @@ module.exports.update = async (req, res, next) => {
     }
     return res.status(400).send(error);
   }
-  const id = body.id;
-  delete body.id;
+  const id = body?.id;
+  delete body?.id;
   const reel = await ReelModel.findByIdAndUpdate(
     id,
     {
@@ -111,10 +115,11 @@ module.exports.update = async (req, res, next) => {
     },
     { new: true }
   );
+  if (!reel) return res.status(404).send("reel dont exist!");
   if (req?.file) {
     reel?.video && removeFileUrl(reel.video);
     reel.video = `${process.env.DOMAIN_NAME}/${req?.file?.destination}/${req?.file?.filename}`;
   }
   await reel.save();
-  res.status(200).send(reel);
+  return res.status(200).send(reel);
 };

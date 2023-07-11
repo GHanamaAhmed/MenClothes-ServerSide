@@ -49,7 +49,6 @@ const upload = multer({
   fileFilter: (req, file, cb) => {
     const mimeType = file.mimetype;
     if (
-      mimeType == "image/bmp" ||
       mimeType == "image/x-png" ||
       mimeType == "image/png" ||
       mimeType == "image/jpeg" ||

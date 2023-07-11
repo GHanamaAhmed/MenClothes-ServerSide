@@ -11,9 +11,36 @@ module.exports.fetch = (req, res) => {
   const { error } = photoValidate.validate(req.params);
   if (error) return res.status(400).send(error);
   const { type, folderName, fileName } = req.params;
-  res.sendFile(
-    path.resolve(__dirname, `../uploads/${type}/${folderName}/${fileName}`)
-  );
+  if (fileName) {
+    res.sendFile(
+      path.resolve(__dirname, `../uploads/${type}/${folderName}/${fileName}`)
+    );
+  } else {
+    const pathFile = path.resolve(
+      __dirname,
+      `../uploads/${type}/${folderName}`
+    );
+    const fileState = fs.statSync(pathFile);
+    const fileSize = fileState.size;
+    let range = req.headers.range;
+    if (!range) {
+      return res.status(400).send("Requires Range header");
+    }
+    const chunk = 1 * 1e6;
+    const start = Number(range.replace(/\D/g, ""));
+    console.log(start);
+    const end = Math.min(start + chunk, fileSize - 1);
+    const contentLength = end - start + 1;
+    const headers = {
+      "Content-Range": `bytes ${start}-${end}/${fileSize}`,
+      "Accept-Ranges": "bytes",
+      "Content-Length": contentLength,
+      "Content-Type": "video/mp4",
+    };
+    res.writeHead(206, headers);
+    const stream = fs.createReadStream(pathFile, { start, end });
+    stream.pipe(res);
+  }
 };
 module.exports.delete = async (req, res) => {
   const { error } = photoValidate.validate(req.body);

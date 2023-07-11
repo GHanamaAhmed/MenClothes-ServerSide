@@ -5,6 +5,8 @@ router
   .route("/")
   .post(authMiddleware, basket.save)
   .delete(authMiddleware, basket.unsave);
-router.route("/product").post(authMiddleware, basket.fetchBasketProduct);
-router.route("/user").post(authMiddleware, basket.fetchLikeUser);
+router
+  .route("/product")
+  .post(authMiddleware, isAdmin, basket.fetchBasketProduct);
+router.route("/user").post(authMiddleware, isAdmin, basket.fetchLikeUser);
 module.exports = router;
