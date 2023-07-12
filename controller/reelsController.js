@@ -21,6 +21,7 @@ const {
   updateReelValidate,
 } = require("../utils/validate/reelValidate");
 const likeModel = require("../models/likeModel");
+const { default: mongoose } = require("mongoose");
 
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
@@ -61,6 +62,139 @@ module.exports.fetch = async (req, res) => {
   return res.status(200).send(reels2);
 };
 
+module.exports.fetchAll = async (req, res) => {
+  const { max, min } = req.params;
+  const userId = req?.user?._id;
+  const reels = await ReelModel.aggregate([
+    {
+      $lookup: {
+        from: "likes",
+        let: { idReel: "$_id" },
+        pipeline: [
+          {
+            $match: {
+              $expr: {
+                $and: [
+                  { $eq: ["$postId", "$$idReel"] },
+                  { $eq: ["$type", "reel"] },
+                ],
+              },
+            },
+          },
+        ],
+        as: "likes",
+      },
+    },
+    {
+      $addFields: {
+        likes: { $size: "$likes" },
+      },
+    },
+    {
+      $lookup: {
+        from: "likes",
+        let: { idReel: "$_id" },
+        pipeline: [
+          {
+            $match: {
+              $expr: {
+                $and: [
+                  { $eq: ["$postId", "$$idReel"] },
+                  { $eq: ["$type", "reel"] },
+                  { $eq: ["$userId", new mongoose.Types.ObjectId(userId)] },
+                ],
+              },
+            },
+          },
+        ],
+        as: "isLike",
+      },
+    },
+    {
+      $addFields: {
+        isLike: { $gt: [{ $size: "$isLike" }, 0] },
+      },
+    },
+    {
+      $lookup: {
+        from: "baskets",
+        let: { idReel: "$_id" },
+        pipeline: [
+          {
+            $match: {
+              $expr: {
+                $and: [
+                  { $eq: ["$postId", "$$idReel"] },
+                  { $eq: ["$userId", new mongoose.Types.ObjectId(userId)] },
+                ],
+              },
+            },
+          },
+        ],
+        as: "isSave",
+      },
+    },
+    {
+      $addFields: {
+        isSave: { $gt: [{ $size: "$isSave" }, 0] },
+      },
+    },
+    {
+      $lookup: {
+        from: "comments",
+        let: { idReel: "$_id" },
+        pipeline: [
+          {
+            $match: {
+              $expr: {
+                $and: [
+                  { $eq: ["$postId", "$$idReel"] },
+                  { $eq: ["$type", "reel"] },
+                ],
+              },
+            },
+          },
+          {
+            $project: {
+              _id: 1,
+            },
+          },
+        ],
+        as: "comments",
+      },
+    },
+    {
+      $addFields: {
+        comments: { $size: "$comments" },
+      },
+    },
+    {
+      $lookup: {
+        from: "products",
+        let: { productId: "$productId" },
+        pipeline: [
+          {
+            $match: {
+              $expr: {
+                $and: [{ $eq: ["$_id", "$$productId"] }],
+              },
+            },
+          },
+        ],
+        as: "productId",
+      },
+    },
+    {
+      $addFields: {
+        price: { $arrayElemAt: ["$productId.price", 0] },
+        productId: { $arrayElemAt: ["$productId._id", 0] },
+      },
+    },
+  ]);
+  const reels2 = reels.slice(min,max);
+  return res.status(200).send(reels2);
+};
+
 module.exports.add = async (req, res, next) => {
   const { error } = addReelValidate.validate(req.body);
   if (error || !req.file) {
@@ -71,7 +205,7 @@ module.exports.add = async (req, res, next) => {
     }
     return res.status(400).send(error || "video is require!");
   }
-  const reel =new ReelModel({
+  const reel = new ReelModel({
     ...req.body,
   });
   if (req.file) {

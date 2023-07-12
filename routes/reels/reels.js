@@ -4,7 +4,7 @@ const reels = require("../../controller/reelsController");
 const { MulterError } = require("multer");
 router
   .route("/:min?:max?")
-  .get(reels.fetch)
+  .get(reels.fetchAll)
   .post(authMiddleware, isAdmin, reels.upload.single("video"), reels.add)
   .delete(authMiddleware, isAdmin, reels.delete)
   .put(authMiddleware, isAdmin, reels.upload.single("video"), reels.update);

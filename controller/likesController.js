@@ -24,10 +24,11 @@ module.exports.fetchLikePost = async (req, res) => {
         },
       },
       { $project: { users: 1, _id: 0 } },
-      {$unwind:"$users"},
-      {$replaceRoot:{
-        newRoot:"$users"
-      }}
+      {
+        $replaceRoot: {
+          newRoot: { $arrayElemAt: ["$users", 0] },
+        },
+      },
     ])
     .then((res) => res.slice(min, max));
   return res.status(200).send(users);
@@ -52,9 +53,9 @@ module.exports.fetchLikeUser = async (req, res) => {
       { $unwind: "$products" },
       {
         $replaceRoot: {
-          newRoot: "$products"
-        }
-      }
+          newRoot: "$products",
+        },
+      },
     ])
     .then((res) => res.slice(min, max));
   return res.status(200).send(prodcts);

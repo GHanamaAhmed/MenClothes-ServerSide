@@ -5,6 +5,10 @@ const commentSchema = new mongoose.Schema({
     required: true,
     ref: "user",
   },
+  text: {
+    type: String,
+    required: true,
+  },
   toUserCommentId: {
     type: mongoose.Schema.Types.ObjectId,
     required: false,
@@ -25,6 +29,5 @@ const commentSchema = new mongoose.Schema({
     required: false,
     default: Date.now(),
   },
-  replies: [this],
 });
 module.exports = mongoose.model("comment", commentSchema);

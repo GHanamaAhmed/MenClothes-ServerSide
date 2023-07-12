@@ -25,6 +25,7 @@ module.exports.getComments = async (req, res) => {
   const { error } = getCommentValidate.validate(req.query);
   if (error) return res.status(401).send(error.message);
   const { postId, type } = req.query;
+  console.log(req.query);
   const comments = await commentModel.aggregate([
     {
       $match: {
@@ -59,11 +60,29 @@ module.exports.getComments = async (req, res) => {
       },
     },
     {
-      $unwind: "$user",
+      $replaceRoot: {
+        newRoot: { $arrayElemAt: ["$user", 0] },
+      },
     },
     {
-      $replaceRoot: {
-        newRoot: "$user",
+      $lookup: {
+        from: "comments",
+        let: { commentId: "$commentId" },
+        pipeline: [
+          {
+            $match: {
+              $expr: {
+                $eq: ["$toUserCommentId", "$$commentId"],
+              },
+            },
+          },
+        ],
+        as: "replies",
+      },
+    },
+    {
+      $addFields: {
+        replies: { $size: "$replies" },
       },
     },
   ]);
@@ -108,13 +127,12 @@ module.exports.getReples = async (req, res) => {
       },
     },
     {
-      $unwind: "$user",
-    },
-    {
       $replaceRoot: {
-        newRoot: "$user",
+        newRoot: { $arrayElemAt: ["$user", 0] },
       },
     },
+    
+  
   ]);
   res.status(200).send(comments);
 };

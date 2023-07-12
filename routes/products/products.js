@@ -26,8 +26,6 @@ router
     products.update
   );
 router.use((error, req, res, next) => {
-  if (error instanceof MulterError) {
-    return res.status(400).send("this is unexpected field -> "+error.field);
-  }
+  return res.status(400).send(error);
 });
 module.exports = router;
