@@ -1,5 +1,10 @@
 const ReelModel = require("../models/reelModel");
-const { removeValidate } = require("../utils/validate/genralValidate");
+const {
+  removeValidate,
+  fetchOneValidate,
+  rangeValidate,
+  fetchOneValidateOP,
+} = require("../utils/validate/genralValidate");
 const multer = require("multer");
 const path = require("path");
 const fs = require("fs");
@@ -56,16 +61,30 @@ const upload = multer({
 });
 
 module.exports.fetch = async (req, res) => {
-  const { max, min } = req.params;
+  const { error } = rangeValidate.validate(req.query);
+  if (error) return res.status(400).send(error.message);
+  const { max, min } = req.query;
+  const { idReel } = req.params;
   const reels = await ReelModel.find({}).limit(max);
   const reels2 = reels.slice(min);
   return res.status(200).send(reels2);
 };
 
 module.exports.fetchAll = async (req, res) => {
-  const { max, min } = req.params;
+  const { error } = rangeValidate.validate(req.query);
+  if (error) return res.status(400).send(error.message);
+  const validate = fetchOneValidateOP.validate(req.params);
+  if (validate.error) return res.status(400).send(validate.error.message);
+  const { max, min } = req.query;
+  const { id } = req.params;
+  console.log(id);
   const userId = req?.user?._id;
   const reels = await ReelModel.aggregate([
+    {
+      $match: {
+        _id: { $ne: new mongoose.Types.ObjectId(id) },
+      },
+    },
     {
       $lookup: {
         from: "likes",
@@ -191,7 +210,139 @@ module.exports.fetchAll = async (req, res) => {
       },
     },
   ]);
-  const reels2 = reels.slice(min,max);
+  const firstReel = await ReelModel.aggregate([
+    {
+      $match: {
+        _id: new mongoose.Types.ObjectId(id),
+      },
+    },
+    {
+      $lookup: {
+        from: "likes",
+        let: { idReel: "$_id" },
+        pipeline: [
+          {
+            $match: {
+              $expr: {
+                $and: [
+                  { $eq: ["$postId", "$$idReel"] },
+                  { $eq: ["$type", "reel"] },
+                ],
+              },
+            },
+          },
+        ],
+        as: "likes",
+      },
+    },
+    {
+      $addFields: {
+        likes: { $size: "$likes" },
+      },
+    },
+    {
+      $lookup: {
+        from: "likes",
+        let: { idReel: "$_id" },
+        pipeline: [
+          {
+            $match: {
+              $expr: {
+                $and: [
+                  { $eq: ["$postId", "$$idReel"] },
+                  { $eq: ["$type", "reel"] },
+                  { $eq: ["$userId", new mongoose.Types.ObjectId(userId)] },
+                ],
+              },
+            },
+          },
+        ],
+        as: "isLike",
+      },
+    },
+    {
+      $addFields: {
+        isLike: { $gt: [{ $size: "$isLike" }, 0] },
+      },
+    },
+    {
+      $lookup: {
+        from: "baskets",
+        let: { idReel: "$_id" },
+        pipeline: [
+          {
+            $match: {
+              $expr: {
+                $and: [
+                  { $eq: ["$postId", "$$idReel"] },
+                  { $eq: ["$userId", new mongoose.Types.ObjectId(userId)] },
+                ],
+              },
+            },
+          },
+        ],
+        as: "isSave",
+      },
+    },
+    {
+      $addFields: {
+        isSave: { $gt: [{ $size: "$isSave" }, 0] },
+      },
+    },
+    {
+      $lookup: {
+        from: "comments",
+        let: { idReel: "$_id" },
+        pipeline: [
+          {
+            $match: {
+              $expr: {
+                $and: [
+                  { $eq: ["$postId", "$$idReel"] },
+                  { $eq: ["$type", "reel"] },
+                ],
+              },
+            },
+          },
+          {
+            $project: {
+              _id: 1,
+            },
+          },
+        ],
+        as: "comments",
+      },
+    },
+    {
+      $addFields: {
+        comments: { $size: "$comments" },
+      },
+    },
+    {
+      $lookup: {
+        from: "products",
+        let: { productId: "$productId" },
+        pipeline: [
+          {
+            $match: {
+              $expr: {
+                $and: [{ $eq: ["$_id", "$$productId"] }],
+              },
+            },
+          },
+        ],
+        as: "productId",
+      },
+    },
+    {
+      $addFields: {
+        price: { $arrayElemAt: ["$productId.price", 0] },
+        productId: { $arrayElemAt: ["$productId._id", 0] },
+      },
+    },
+  ]);
+  const reels2 = reels.slice(min, max);
+  firstReel?.length > 0 && reels2.unshift(...firstReel);
   return res.status(200).send(reels2);
 };
 

@@ -11,9 +11,17 @@ const photoValidate = joi.object({
   folderName:joi.string().required(),
   fileName:joi.string(),
 });
-
+const rangeValidate = joi.object({
+  min:joi.number(),
+  max:joi.number(),
+});
+const fetchOneValidateOP = joi.object({
+  id: objectId,
+});
 module.exports = {
   photoValidate,
   fetchOneValidate,
   removeValidate,
+  rangeValidate,
+  fetchOneValidateOP
 };

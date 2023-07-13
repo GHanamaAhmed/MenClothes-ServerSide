@@ -1,5 +1,8 @@
 const ProductModel = require("../models/productModel");
-const { removeValidate } = require("../utils/validate/genralValidate");
+const {
+  removeValidate,
+  rangeValidate,
+} = require("../utils/validate/genralValidate");
 const multer = require("multer");
 const path = require("path");
 const fs = require("fs");
@@ -68,7 +71,9 @@ module.exports.initialize = async (req, res, next) => {
 };
 
 module.exports.fetch = async (req, res) => {
-  const { max, min } = req.params;
+  const { error } = rangeValidate.validate(req.params);
+  if (error) return res.status(400).send(error.message);
+  const { min, max } = req.params;
   const userId = req?.user?._id;
   const products = await ProductModel.aggregate([
     {
@@ -128,7 +133,7 @@ module.exports.fetch = async (req, res) => {
 
 module.exports.add = async (req, res, next) => {
   const { error } = addProductValidate.validate(req.body);
-  if (error||!req.files?.thumbanil) {
+  if (error || !req.files?.thumbanil) {
     let delPath;
     if (req.files?.photos?.length) {
       delPath = baseUrl() + "/" + req.files?.photos[0]?.destination;
@@ -136,7 +141,7 @@ module.exports.add = async (req, res, next) => {
       delPath = baseUrl() + "/" + req.files?.thumbanil[0]?.destination;
     }
     removeFolder(delPath);
-    return res.status(400).send(error||"thumbanil field is require!");
+    return res.status(400).send(error || "thumbanil field is require!");
   }
   const product = ProductModel({
     ...req.body,
@@ -171,8 +176,8 @@ module.exports.delete = async (req, res) => {
       return res.status(500).send(error);
     }
   }
-  await likeModel.findOneAndDelete({postId:product._id,type:"product"})
-  await basketModel.findOneAndDelete({productId:product._id})
+  await likeModel.findOneAndDelete({ postId: product._id, type: "product" });
+  await basketModel.findOneAndDelete({ productId: product._id });
   res.status(200).send(product);
 };
 

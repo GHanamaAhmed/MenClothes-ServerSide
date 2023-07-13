@@ -3,7 +3,7 @@ const { authMiddleware, isAdmin } = require("../../middlewares/middlewareAuth");
 const reels = require("../../controller/reelsController");
 const { MulterError } = require("multer");
 router
-  .route("/:min?:max?")
+  .route("/:id?")
   .get(reels.fetchAll)
   .post(authMiddleware, isAdmin, reels.upload.single("video"), reels.add)
   .delete(authMiddleware, isAdmin, reels.delete)
