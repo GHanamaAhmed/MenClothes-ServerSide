@@ -5,6 +5,14 @@ const commentSchema = new mongoose.Schema({
     required: true,
     ref: "user",
   },
+  groub: {
+    type: mongoose.Schema.Types.ObjectId,
+    required: false,
+  },
+  childGroub: {
+    type: mongoose.Schema.Types.ObjectId,
+    required: false,
+  },
   text: {
     type: String,
     required: true,

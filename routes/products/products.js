@@ -1,6 +1,7 @@
 const router = require("express").Router();
 const { authMiddleware, isAdmin } = require("../../middlewares/middlewareAuth");
 const products = require("../../controller/productsController");
+router.get("/product/:id?", products.fetchOne);
 router
   .route("/:min?:max?")
   .get(products.fetch)

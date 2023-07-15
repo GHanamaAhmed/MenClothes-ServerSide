@@ -2,6 +2,7 @@ const ProductModel = require("../models/productModel");
 const {
   removeValidate,
   rangeValidate,
+  fetchOneValidate,
 } = require("../utils/validate/genralValidate");
 const multer = require("multer");
 const path = require("path");
@@ -130,7 +131,66 @@ module.exports.fetch = async (req, res) => {
   const products2 = products.slice(min, max);
   res.status(200).send(products2);
 };
-
+module.exports.fetchOne = async (req, res) => {
+  const { error } = fetchOneValidate.validate(req.params);
+  if (error) return res.status(400).send(error.message);
+  const { id } = req.params;
+  const userId = req?.user?._id;
+  const product = await ProductModel.aggregate([
+    { $match: { _id: new mongoose.Types.ObjectId(id) } },
+    {
+      $lookup: {
+        from: "likes",
+        let: { productId: "$_id" },
+        pipeline: [
+          {
+            $match: {
+              $expr: {
+                $and: [
+                  { $eq: ["$postId", "$$productId"] },
+                  { $eq: ["$userId", new mongoose.Types.ObjectId(userId)] },
+                ],
+              },
+            },
+          },
+        ],
+        as: "likes",
+      },
+    },
+    {
+      $lookup: {
+        from: "baskets",
+        let: { productId: "$_id" },
+        pipeline: [
+          {
+            $match: {
+              $expr: {
+                $and: [
+                  { $eq: ["$productId", "$$productId"] },
+                  { $eq: ["$userId", new mongoose.Types.ObjectId(userId)] },
+                ],
+              },
+            },
+          },
+        ],
+        as: "baskets",
+      },
+    },
+    {
+      $addFields: {
+        isLike: { $gt: [{ $size: "$likes" }, 0] },
+        isSave: { $gt: [{ $size: "$baskets" }, 0] },
+      },
+    },
+    {
+      $project: {
+        users: 0,
+        likes: 0,
+      },
+    },
+  ]);
+  res.status(200).send(product);
+};
 module.exports.add = async (req, res, next) => {
   const { error } = addProductValidate.validate(req.body);
   if (error || !req.files?.thumbanil) {

@@ -12,7 +12,7 @@ const {
 
 module.exports.sendComment = async (req, res) => {
   const { error } = sendCommentValidate.validate(req.body);
-  if (error) return res.status(401).send(error.message);
+  if (error) return res.status(400).send(error.message);
   const newComment = new commentModel({
     ...req.body,
     userId: req.user._id,
@@ -23,7 +23,7 @@ module.exports.sendComment = async (req, res) => {
 
 module.exports.getComments = async (req, res) => {
   const { error } = getCommentValidate.validate(req.query);
-  if (error) return res.status(401).send(error.message);
+  if (error) return res.status(404).send(error.message);
   const { postId, type } = req.query;
   console.log(req.query);
   const comments = await commentModel.aggregate([
@@ -37,7 +37,7 @@ module.exports.getComments = async (req, res) => {
     {
       $lookup: {
         from: "users",
-        let: { commentId: "$_id", userId: "$userId", createA: "$createAt" },
+        let: { commentId: "$_id", userId: "$userId", createA: "$createAt",text:"$text" },
         pipeline: [
           {
             $match: {
@@ -53,6 +53,7 @@ module.exports.getComments = async (req, res) => {
             $addFields: {
               commentId: "$$commentId",
               createAt: "$$createA",
+              text: "$$text",
             },
           },
         ],
@@ -91,7 +92,7 @@ module.exports.getComments = async (req, res) => {
 
 module.exports.getReples = async (req, res) => {
   const { error } = getRepliesValidate.validate(req.query);
-  if (error) return res.status(401).send(error.message);
+  if (error) return res.status(400).send(error.message);
   const { postId, type, commentId } = req.query;
   const comments = await commentModel.aggregate([
     {
@@ -104,7 +105,7 @@ module.exports.getReples = async (req, res) => {
     {
       $lookup: {
         from: "users",
-        let: { commentId: "$_id", userId: "$userId", createA: "$createAt" },
+        let: { commentId: "$_id", userId: "$userId", createA: "$createAt",text:"$text" },
         pipeline: [
           {
             $match: {
@@ -120,6 +121,7 @@ module.exports.getReples = async (req, res) => {
             $addFields: {
               commentId: "$$commentId",
               createAt: "$$createA",
+              text: "$$text",
             },
           },
         ],
@@ -131,15 +133,34 @@ module.exports.getReples = async (req, res) => {
         newRoot: { $arrayElemAt: ["$user", 0] },
       },
     },
-    
-  
+    {
+      $lookup: {
+        from: "comments",
+        let: { commentId: "$commentId" },
+        pipeline: [
+          {
+            $match: {
+              $expr: {
+                $eq: ["$toUserCommentId", "$$commentId"],
+              },
+            },
+          },
+        ],
+        as: "replies",
+      },
+    },
+    {
+      $addFields: {
+        replies: { $size: "$replies" },
+      },
+    },
   ]);
   res.status(200).send(comments);
 };
 
 module.exports.deleteComment = async (req, res) => {
   const { error } = removeValidate.validate(req.body);
-  if (error) return res.status(401).send(error.message);
+  if (error) return res.status(400).send(error.message);
   const { id } = req.body;
   const comment = await commentModel.findById(id);
   if (!comment) return res.status(404).send("Comment dont found!");
@@ -154,8 +175,17 @@ module.exports.deleteComment = async (req, res) => {
         .send("you dont have the right to delete this comment");
     }
   }
-  const replies = await commentModel.deleteMany({
-    toUserCommentId: comment._id,
-  });
+  let replies = [comment];
+  let n = replies.length;
+  let i = 0;
+  while (i < n) {
+    let element = await commentModel.findOneAndDelete({
+      toUserCommentId: replies[i]._id,
+    });
+    element && replies.push(element);
+    n = replies.length;
+    i++;
+  }
+
   res.status(200).json({ comment, replies });
 };
