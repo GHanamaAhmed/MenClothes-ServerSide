@@ -93,7 +93,7 @@ POST /products<br />
 }<br />
 
 
-### 1-Method: DELETE
+### 3-Method: DELETE
 
 Description: Delete product.<br />
 
