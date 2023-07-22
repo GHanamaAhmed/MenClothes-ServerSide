@@ -10,8 +10,8 @@ router.get(
   "/google/callback",
   passport.authenticate("google", {
     session: true,
-    successRedirect: "http://localhost:4000/signin",
-    failureRedirect: "http://localhost:4000/signin",
+    successRedirect: "http://localhost:3000",
+    failureRedirect: "http://localhost:3000",
   })
 );
 module.exports = router;

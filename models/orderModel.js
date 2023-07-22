@@ -11,6 +11,8 @@ const orderSchema = new mongoose.Schema({
       {
         id: { type: mongoose.Schema.Types.ObjectId, ref: "product" },
         quntity: Number,
+        size: Number,
+        color: Number,
       },
     ],
     required: true,

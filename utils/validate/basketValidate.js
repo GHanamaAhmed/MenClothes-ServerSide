@@ -4,7 +4,7 @@ const handleBasketValidate = joi.object({
   id: objectId.required(),
 });
 const fetchBasketValidate = joi.object({
-  id: objectId.required(),
+  id: objectId,
   min: joi.number(),
   max: joi.number(),
 });

@@ -10,6 +10,15 @@ const basketSchema = new mongoose.Schema({
     required: false,
     ref: "product",
   },
+  size: {
+    type: String,
+  },
+  color: {
+    type: String,
+  },
+  quntity: {
+    type: Number,
+  },
   createAt: {
     type: Date,
     required: false,

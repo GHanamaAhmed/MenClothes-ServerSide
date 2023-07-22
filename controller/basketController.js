@@ -10,6 +10,7 @@ const {
 const { default: mongoose } = require("mongoose");
 const basketModel = require("../models/basketModel");
 const { fetchBasketValidate } = require("../utils/validate/basketValidate");
+const productModel = require("../models/productModel");
 //export methods
 
 //admin methods
@@ -29,10 +30,12 @@ module.exports.fetchBasketProduct = async (req, res) => {
         },
       },
       { $project: { users: 1, _id: 0 } },
-      {$unwind:"$users"},
-      {$replaceRoot:{
-        newRoot:"$users"
-      }}
+      { $unwind: "$users" },
+      {
+        $replaceRoot: {
+          newRoot: "$users",
+        },
+      },
     ])
     .then((res) => res.slice(min, max));
   return res.status(200).send(users);
@@ -41,10 +44,12 @@ module.exports.fetchBasketProduct = async (req, res) => {
 module.exports.fetchLikeUser = async (req, res) => {
   const { error } = fetchBasketValidate.validate(req.body);
   if (error) return res.status(400).send(error);
-  const { id,  min, max } = req.body;
+  const { id, min, max } = req.body;
+  const user = req?.user;
+  if (id && user?.role == "client") return res.status(405).send();
   const prodcts = await basketModel
     .aggregate([
-      { $match: { userId: new mongoose.Types.ObjectId(id)} },
+      { $match: { userId: id ? new mongoose.Types.ObjectId(id) : user?._id } },
       {
         $lookup: {
           from: "products",
@@ -54,17 +59,29 @@ module.exports.fetchLikeUser = async (req, res) => {
         },
       },
       { $project: { products: 1, _id: 0 } },
-      {$unwind:"$products"},{
-        $replaceRoot:{
-          newRoot:"$products"
-        }
-      }
+      { $unwind: "$products" },
+      {
+        $replaceRoot: {
+          newRoot: "$products",
+        },
+      },
     ])
     .then((res) => res.slice(min, max));
   return res.status(200).send(prodcts);
 };
 
 //user methods
+module.exports.fetch = async (req, res) => {
+  const { id } = req.params;
+  const user = req?.user;
+  if (id && user?.role == "client") return res.status(405).send();
+  const prodcts = await basketModel
+    .aggregate([
+      { $match: { userId: id ? new mongoose.Types.ObjectId(id) : user?._id } },
+    ]);
+  return res.status(200).send(prodcts);
+};
+
 module.exports.save = async (req, res) => {
   const { error } = fetchOneValidate.validate(req.body);
   if (error) return res.status(400).send(error);
@@ -75,6 +92,9 @@ module.exports.save = async (req, res) => {
   if (basket) {
     return res.status(400).send("this product in basket");
   }
+  const product = await productModel.findById(req.body.id);
+  if (product?.status === false || !product)
+    return res.status(400).send("This product not available!");
   const newBasket = new basketModel({
     userId: req.user._id,
     productId: req.body.id,

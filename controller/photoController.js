@@ -52,8 +52,7 @@ module.exports.delete = async (req, res) => {
     });
     if (product) {
       product.photos = product.photos.filter((e) => {
-        console.log(e == cupp(type, folderName, fileName));
-        return e != cupp(type, folderName, fileName);
+        return e.photo != cupp(type, folderName, fileName);
       });
       await product.save();
     }

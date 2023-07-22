@@ -90,6 +90,25 @@ module.exports.getComments = async (req, res) => {
   res.status(200).send(comments);
 };
 
+module.exports.getCountComment = async (req, res) => {
+  const { error } = getCommentValidate.validate(req.query);
+  if (error) return res.status(404).send(error.message);
+  const { postId, type } = req.query;
+  console.log(req.query);
+  const comments = await commentModel.aggregate([
+    {
+      $match: {
+        postId: new mongoose.Types.ObjectId(postId),
+        type: type,
+      },
+    },
+    {
+      $count:"count"
+    }
+  ]);
+  res.status(200).send(comments);
+};
+
 module.exports.getReples = async (req, res) => {
   const { error } = getRepliesValidate.validate(req.query);
   if (error) return res.status(400).send(error.message);

@@ -1,14 +1,20 @@
 const joi = require("joi");
 const { objectId } = require("./validateObjctId");
+const details = joi.object().keys({
+  sizes: joi.array(),
+  colors: joi.array(),
+  quntity: joi.number(),
+});
 const addProductValidate = joi.object({
   name: joi.string().max(100).required(),
   reelId: objectId,
   quntity: joi.number().min(0),
-  price: joi.number(),
-  colors: joi.array(),
-  sizes: joi.array(),
+  price: joi.number().required(),
+  details: joi.array().items(details),
   photos: joi.any(),
+  thumbanil: joi.any(),
   promotion: joi.number(),
+  type: joi.string(),
   description: joi.string(),
   status: joi.boolean(),
   showPrice: joi.boolean(),
@@ -20,11 +26,11 @@ const updateProductValidate = joi.object({
   reelId: objectId,
   quntity: joi.number().min(0),
   price: joi.number(),
-  colors: joi.array(),
-  sizes: joi.array(),
+  details: joi.array().items(details),
   photos: joi.any(),
   thumbanil: joi.any().required(),
   promotion: joi.number(),
+  type: joi.string(),
   description: joi.string(),
   status: joi.boolean(),
   showPrice: joi.boolean(),
@@ -36,7 +42,7 @@ const likeProductValidate = joi.object({
 });
 const commentProductValidate = joi.object({
   idUser: objectId.required(),
-  idProduct:objectId.required(),
+  idProduct: objectId.required(),
   toUserId: objectId,
 });
 

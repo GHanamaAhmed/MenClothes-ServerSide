@@ -11,8 +11,8 @@ router.get(
 router.get(
   "/facebook/callback",
   passport.authenticate("facebook", {
-    successRedirect: "http://158.180.30.34",
-    failureRedirect: "http://localhost:5173/signin",
+    successRedirect: "http://localhost:3000",
+    failureRedirect: "http://localhost:3000",
   })
 );
 module.exports = router;

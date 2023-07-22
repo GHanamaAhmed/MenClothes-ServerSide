@@ -6,6 +6,7 @@ const {
   fetchOneValidateOP,
 } = require("../utils/validate/genralValidate");
 const multer = require("multer");
+const ffmpeg = require("../utils/ffmpeg/ffmpeg");
 const path = require("path");
 const fs = require("fs");
 const { v4: uuid } = require("uuid");
@@ -60,14 +61,12 @@ const upload = multer({
   },
 });
 
-module.exports.fetch = async (req, res) => {
-  const { error } = rangeValidate.validate(req.query);
+module.exports.fetchOne = async (req, res) => {
+  const { error } = fetchOneValidate.validate(req.params);
   if (error) return res.status(400).send(error.message);
-  const { max, min } = req.query;
-  const { idReel } = req.params;
-  const reels = await ReelModel.find({}).limit(max);
-  const reels2 = reels.slice(min);
-  return res.status(200).send(reels2);
+  const { id } = req.params;
+  const reels = await ReelModel.findById(id);
+  return res.status(200).send(reels);
 };
 
 module.exports.fetchAll = async (req, res) => {
@@ -77,7 +76,6 @@ module.exports.fetchAll = async (req, res) => {
   if (validate.error) return res.status(400).send(validate.error.message);
   const { max, min } = req.query;
   const { id } = req.params;
-  console.log(id);
   const userId = req?.user?._id;
   const reels = await ReelModel.aggregate([
     {
@@ -132,30 +130,6 @@ module.exports.fetchAll = async (req, res) => {
     {
       $addFields: {
         isLike: { $gt: [{ $size: "$isLike" }, 0] },
-      },
-    },
-    {
-      $lookup: {
-        from: "baskets",
-        let: { idReel: "$_id" },
-        pipeline: [
-          {
-            $match: {
-              $expr: {
-                $and: [
-                  { $eq: ["$postId", "$$idReel"] },
-                  { $eq: ["$userId", new mongoose.Types.ObjectId(userId)] },
-                ],
-              },
-            },
-          },
-        ],
-        as: "isSave",
-      },
-    },
-    {
-      $addFields: {
-        isSave: { $gt: [{ $size: "$isSave" }, 0] },
       },
     },
     {
@@ -267,7 +241,7 @@ module.exports.fetchAll = async (req, res) => {
     },
     {
       $lookup: {
-        from: "baskets",
+        from: "comments",
         let: { idReel: "$_id" },
         pipeline: [
           {
@@ -275,18 +249,220 @@ module.exports.fetchAll = async (req, res) => {
               $expr: {
                 $and: [
                   { $eq: ["$postId", "$$idReel"] },
+                  { $eq: ["$type", "reel"] },
+                ],
+              },
+            },
+          },
+          {
+            $project: {
+              _id: 1,
+            },
+          },
+        ],
+        as: "comments",
+      },
+    },
+    {
+      $addFields: {
+        comments: { $size: "$comments" },
+      },
+    },
+    {
+      $lookup: {
+        from: "products",
+        let: { productId: "$productId" },
+        pipeline: [
+          {
+            $match: {
+              $expr: {
+                $and: [{ $eq: ["$_id", "$$productId"] }],
+              },
+            },
+          },
+        ],
+        as: "productId",
+      },
+    },
+    {
+      $addFields: {
+        price: { $arrayElemAt: ["$productId.price", 0] },
+        productId: { $arrayElemAt: ["$productId._id", 0] },
+      },
+    },
+  ]);
+  const reels2 = reels.slice(min, max);
+  firstReel?.length > 0 && reels2.unshift(...firstReel);
+  return res.status(200).send(reels2);
+};
+module.exports.fetchAll = async (req, res) => {
+  const { error } = rangeValidate.validate(req.query);
+  if (error) return res.status(400).send(error.message);
+  const validate = fetchOneValidateOP.validate(req.params);
+  if (validate.error) return res.status(400).send(validate.error.message);
+  const { max, min } = req.query;
+  const { id } = req.params;
+  const userId = req?.user?._id;
+  const reels = await ReelModel.aggregate([
+    {
+      $match: {
+        _id: { $ne: new mongoose.Types.ObjectId(id) },
+      },
+    },
+    {
+      $lookup: {
+        from: "likes",
+        let: { idReel: "$_id" },
+        pipeline: [
+          {
+            $match: {
+              $expr: {
+                $and: [
+                  { $eq: ["$postId", "$$idReel"] },
+                  { $eq: ["$type", "reel"] },
+                ],
+              },
+            },
+          },
+        ],
+        as: "likes",
+      },
+    },
+    {
+      $addFields: {
+        likes: { $size: "$likes" },
+      },
+    },
+    {
+      $lookup: {
+        from: "likes",
+        let: { idReel: "$_id" },
+        pipeline: [
+          {
+            $match: {
+              $expr: {
+                $and: [
+                  { $eq: ["$postId", "$$idReel"] },
+                  { $eq: ["$type", "reel"] },
                   { $eq: ["$userId", new mongoose.Types.ObjectId(userId)] },
                 ],
               },
             },
           },
         ],
-        as: "isSave",
+        as: "isLike",
       },
     },
     {
       $addFields: {
-        isSave: { $gt: [{ $size: "$isSave" }, 0] },
+        isLike: { $gt: [{ $size: "$isLike" }, 0] },
+      },
+    },
+    {
+      $lookup: {
+        from: "comments",
+        let: { idReel: "$_id" },
+        pipeline: [
+          {
+            $match: {
+              $expr: {
+                $and: [
+                  { $eq: ["$postId", "$$idReel"] },
+                  { $eq: ["$type", "reel"] },
+                ],
+              },
+            },
+          },
+          {
+            $project: {
+              _id: 1,
+            },
+          },
+        ],
+        as: "comments",
+      },
+    },
+    {
+      $addFields: {
+        comments: { $size: "$comments" },
+      },
+    },
+    {
+      $lookup: {
+        from: "products",
+        let: { productId: "$productId" },
+        pipeline: [
+          {
+            $match: {
+              $expr: {
+                $and: [{ $eq: ["$_id", "$$productId"] }],
+              },
+            },
+          },
+        ],
+        as: "productId",
+      },
+    },
+    {
+      $addFields: {
+        price: { $arrayElemAt: ["$productId.price", 0] },
+        productId: { $arrayElemAt: ["$productId._id", 0] },
+      },
+    },
+  ]);
+  const firstReel = await ReelModel.aggregate([
+    {
+      $match: {
+        _id: new mongoose.Types.ObjectId(id),
+      },
+    },
+    {
+      $lookup: {
+        from: "likes",
+        let: { idReel: "$_id" },
+        pipeline: [
+          {
+            $match: {
+              $expr: {
+                $and: [
+                  { $eq: ["$postId", "$$idReel"] },
+                  { $eq: ["$type", "reel"] },
+                ],
+              },
+            },
+          },
+        ],
+        as: "likes",
+      },
+    },
+    {
+      $addFields: {
+        likes: { $size: "$likes" },
+      },
+    },
+    {
+      $lookup: {
+        from: "likes",
+        let: { idReel: "$_id" },
+        pipeline: [
+          {
+            $match: {
+              $expr: {
+                $and: [
+                  { $eq: ["$postId", "$$idReel"] },
+                  { $eq: ["$type", "reel"] },
+                  { $eq: ["$userId", new mongoose.Types.ObjectId(userId)] },
+                ],
+              },
+            },
+          },
+        ],
+        as: "isLike",
+      },
+    },
+    {
+      $addFields: {
+        isLike: { $gt: [{ $size: "$isLike" }, 0] },
       },
     },
     {
@@ -345,7 +521,6 @@ module.exports.fetchAll = async (req, res) => {
   firstReel?.length > 0 && reels2.unshift(...firstReel);
   return res.status(200).send(reels2);
 };
-
 module.exports.add = async (req, res, next) => {
   const { error } = addReelValidate.validate(req.body);
   if (error || !req.file) {
@@ -362,9 +537,21 @@ module.exports.add = async (req, res, next) => {
   if (req.file) {
     const Path = `${process.env.DOMAIN_NAME}/${req.file.destination}/${req.file.filename}`;
     reel.video = Path;
+    const thumbanilName = `thumbanil+${uuid()}.webp`;
+    const thumbanilUrl = `${process.env.DOMAIN_NAME}/${req.file.destination}/thumbanils/${thumbanilName}`;
+    ffmpeg(`${baseUrl()}/${req.file.destination}/${req.file.filename}`)
+      .thumbnail({
+        timestamps: ["50%"],
+        folder: "uploads/reels/thumbanils",
+        filename: thumbanilName,
+      })
+      .toFormat("webp")
+      .on("end", async () => {
+        reel.thumbanil = thumbanilUrl;
+        await reel.save();
+        return res.status(200).send(reel);
+      });
   }
-  await reel.save();
-  return res.status(200).send(reel);
 };
 
 module.exports.upload = upload;
@@ -377,6 +564,7 @@ module.exports.delete = async (req, res) => {
   });
   if (!reel) return res.status(404).send("reel dont exist!");
   removeFileUrl(reel?.video);
+  removeFileUrl(reel?.thumbanil);
   await likeModel.findOneAndDelete({ postId: reel?._id, type: "reel" });
   return res.status(200).send(reel);
 };

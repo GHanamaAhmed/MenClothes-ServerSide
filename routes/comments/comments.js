@@ -6,6 +6,9 @@ router
   .get(comments.getComments)
   .post(authMiddleware, comments.sendComment)
   .delete(authMiddleware, comments.deleteComment);
+  router
+  .route("/count")
+  .get(comments.getCountComment)
 
 router.route("/replies").get(comments.getReples);
 module.exports = router;

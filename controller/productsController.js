@@ -12,6 +12,7 @@ const {
   addProductValidate,
   updateProductValidate,
 } = require("../utils/validate/productValidate");
+const sharp = require("sharp");
 const {
   moveFileUrl,
   removeFolderUrl,
@@ -21,6 +22,7 @@ const {
   removeFileUrl,
   deleteFolderRecursive,
   baseUrl,
+  convertUrlToPath,
 } = require("../utils/files/files");
 const likeModel = require("../models/likeModel");
 const mongoose = require("mongoose");
@@ -77,6 +79,8 @@ module.exports.fetch = async (req, res) => {
   const { min, max } = req.params;
   const userId = req?.user?._id;
   const products = await ProductModel.aggregate([
+    { $skip: Number(min) || 0 },
+    { $limit: Number(max) || (Number(min) && Number(min) + 20) || 20 },
     {
       $lookup: {
         from: "likes",
@@ -128,8 +132,12 @@ module.exports.fetch = async (req, res) => {
       },
     },
   ]);
-  const products2 = products.slice(min, max);
+  const products2 = products;
   res.status(200).send(products2);
+};
+module.exports.count = async (req, res) => {
+  const count = await ProductModel.count();
+  res.status(200).json({ count });
 };
 module.exports.fetchOne = async (req, res) => {
   const { error } = fetchOneValidate.validate(req.params);
@@ -203,18 +211,42 @@ module.exports.add = async (req, res, next) => {
     removeFolder(delPath);
     return res.status(400).send(error || "thumbanil field is require!");
   }
+  const body = req?.body;
+  const details = body?.details ? JSON.parse(body?.details) : null; // Temporarily
+  delete body.details;
   const product = ProductModel({
-    ...req.body,
+    ...body,
     photos: [],
     path: req.folderName && "uploads/products/" + req.folderName,
   });
-  req?.files?.thumbanil?.map((e) => {
-    const Path = `${process.env.DOMAIN_NAME}/${product.path}/${e.filename}`;
-    product.thumbanil = Path;
+  req?.files?.thumbanil?.map(async (e) => {
+    const oldPath = `${process.env.DOMAIN_NAME}/${product.path}/${e.filename}`;
+    const newPath = `${process.env.DOMAIN_NAME}/${product.path}/${
+      e.filename.split(".")[0]
+    }.webp`;
+    product.thumbanil = newPath;
+    await sharp(convertUrlToPath(oldPath))
+      .webp()
+      .toFile(newPath.replace(`${process.env.DOMAIN_NAME}/`, ""));
+    removeFileUrl(convertUrlToPath(oldPath));
   });
-  req?.files?.photos?.map((e) => {
-    const Path = `${process.env.DOMAIN_NAME}/${product.path}/${e.filename}`;
-    product.photos.push(Path);
+  req?.files?.photos?.map(async (e, i) => {
+    const oldPath = `${process.env.DOMAIN_NAME}/${product.path}/${e.filename}`;
+    const newPath = `${process.env.DOMAIN_NAME}/${product.path}/${
+      e.filename.split(".")[0]
+    }.webp`;
+    const photo = {
+      photo: newPath,
+      sizes: details && details?.length >= i ? details[i]?.sizes : undefined,
+      colors: details && details?.length >= i ? details[i]?.colors : undefined,
+      quntity:
+        details && details?.length >= i ? details[i]?.quntity : undefined,
+    };
+    product.photos.push(photo);
+    await sharp(convertUrlToPath(oldPath))
+      .webp()
+      .toFile(newPath.replace(`${process.env.DOMAIN_NAME}/`, ""));
+    removeFileUrl(convertUrlToPath(oldPath));
   });
   await product.save();
   res.status(200).send(product);
@@ -255,7 +287,9 @@ module.exports.update = async (req, res) => {
     return res.status(400).send(error);
   }
   const id = body.id;
+  const details = body?.details ? JSON.parse(body?.details) : null; // Temporarily
   delete body.id;
+  delete body.details;
   const prevPhoto = await ProductModel.findById(id).then((res) => res.photos);
   const product = await ProductModel.findByIdAndUpdate(
     id,
@@ -276,9 +310,14 @@ module.exports.update = async (req, res) => {
     moveFile(currentPath, newPath);
   });
   req?.files?.photos?.map((e) => {
-    product.photos.push(
-      `${process.env.DOMAIN_NAME}/${product.path}/${e.filename}`
-    );
+    const photo = {
+      photo: `${process.env.DOMAIN_NAME}/${product.path}/${e.filename}`,
+      sizes: details && details?.length >= i ? details[i]?.sizes : undefined,
+      colors: details && details?.length >= i ? details[i]?.colors : undefined,
+      quntity:
+        details && details?.length >= i ? details[i]?.quntity : undefined,
+    };
+    product.photos.push(photo);
     let currentPath = path.resolve(
       __dirname,
       `../${e.destination}/${e.filename}`
