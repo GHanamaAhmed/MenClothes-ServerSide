@@ -26,7 +26,7 @@ const orderSchema = new mongoose.Schema({
     type: String,
     required: true,
   },
-  stateus: {
+  states: {
     type: String,
     required: true,
     enum: ["pending", "accepted", "rejected", "cancelled", "completed"],

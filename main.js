@@ -32,6 +32,7 @@ require("./models/orderModel");
 require("./models/productModel");
 require("./models/reelModel");
 require("./models/userModel");
+require("./models/viewsModel")
 //basic middleware
 app.use(cors({ origin: "http://localhost:3000", credentials: true }));
 app.use(helmet());

@@ -1,6 +1,7 @@
 const { isAdmin } = require("../middlewares/middlewareAuth");
 const ProductModel = require("../models/productModel");
 const UserModel = require("../models/userModel");
+const viewsModel = require("../models/viewsModel");
 const {
   removeValidate,
   fetchOneValidate,
@@ -55,6 +56,23 @@ module.exports.fetch = async (req, res) => {
   ]);
   const userSlice = users.slice(min, max);
   res.status(200).send(userSlice);
+};
+module.exports.increaseViews = async (req, res) => {
+  let views = await viewsModel.find({ page: { $exists: false } });
+  if (views) {
+    views = new viewsModel({ counter: 0 });
+  }
+  views.counter = views.counter + 1;
+  await views.save();
+  res.status(200).send({ counter: views.counter });
+};
+module.exports.fetchViews = async (req, res) => {
+  let views = await viewsModel.find({ page: { $exists: false } });
+  if (views) {
+    views = new viewsModel({ counter: 0 });
+  }
+  await views.save();
+  res.status(200).send({ counter: views.counter });
 };
 module.exports.fetchOne = async (req, res) => {
   const isAdmin = req?.user?.role == "admin";
