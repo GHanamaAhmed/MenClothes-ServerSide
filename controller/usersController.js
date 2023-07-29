@@ -15,7 +15,44 @@ module.exports.fetch = async (req, res) => {
   const { error } = rangeValidate.validate(req.params);
   if (error) return res.status(400).send(error.message);
   const { max, min } = req.params;
-  const users = await UserModel.find({});
+  const users = await UserModel.aggregate([
+    {
+      $lookup: {
+        from: "orders",
+        let: { userId: "$_id" },
+        pipeline: [
+          {
+            $match: {
+              userId: "$$userId",
+            },
+          },
+          {
+            $addFields: {
+              products: { $size: "$productsIds" },
+            },
+          },
+          {
+            $project: {
+              products: 1,
+              price: 1,
+            },
+          },
+        ],
+        as: "orders",
+      },
+    },
+    {
+      $addFields: {
+        price: { $sum: "$orders.price" },
+        products: { $sum: "$orders.products" },
+      },
+    },
+    {
+      $project: {
+        orders: 0,
+      },
+    },
+  ]);
   const userSlice = users.slice(min, max);
   res.status(200).send(userSlice);
 };

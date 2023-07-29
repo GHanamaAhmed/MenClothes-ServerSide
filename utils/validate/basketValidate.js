@@ -8,4 +8,10 @@ const fetchBasketValidate = joi.object({
   min: joi.number(),
   max: joi.number(),
 });
-module.exports = { handleBasketValidate, fetchBasketValidate };
+const addBasketValidate = joi.object({
+  id: objectId.required(),
+  size: joi.number(),
+  quntity: joi.number(),
+  color: joi.number(),
+});
+module.exports = { handleBasketValidate, fetchBasketValidate,addBasketValidate };

@@ -89,4 +89,5 @@ productSchema.pre("save", function (next) {
   }
   next();
 });
+
 module.exports = mongoose.model("product", productSchema);

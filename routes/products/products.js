@@ -1,10 +1,8 @@
 const router = require("express").Router();
 const { authMiddleware, isAdmin } = require("../../middlewares/middlewareAuth");
 const products = require("../../controller/productsController");
-router.get("/product/:id?", products.fetchOne);
-router.get("/count", products.count);
 router
-  .route("/:min?/:max?")
+  .route("/")
   .get(products.fetch)
   .post(
     authMiddleware,
@@ -27,6 +25,8 @@ router
     ]),
     products.update
   );
+router.get("/product/:id?", products.fetchOne);
+router.get("/count", products.count);
 router.use((error, req, res, next) => {
   return res.status(400).send(error);
 });

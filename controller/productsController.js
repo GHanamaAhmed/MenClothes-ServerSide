@@ -74,13 +74,23 @@ module.exports.initialize = async (req, res, next) => {
 };
 
 module.exports.fetch = async (req, res) => {
-  const { error } = rangeValidate.validate(req.params);
+  const { error } = rangeValidate.validate(req.query);
   if (error) return res.status(400).send(error.message);
-  const { min, max } = req.params;
+  const { min, max, type, name } = req.query;
   const userId = req?.user?._id;
   const products = await ProductModel.aggregate([
+    {
+      $match: {
+        $and: type
+          ? [
+              { type: { $regex: type ? type : "" } },
+              { name: { $regex: name ? name : "" } },
+            ]
+          : [{ name: { $regex: name ? name : "" } }],
+      },
+    },
     { $skip: Number(min) || 0 },
-    { $limit: Number(max) || (Number(min) && Number(min) + 20) || 20 },
+    { $limit: Number(max) || (Number(min) && Number(min) + 15) || 15 },
     {
       $lookup: {
         from: "likes",
@@ -132,8 +142,22 @@ module.exports.fetch = async (req, res) => {
       },
     },
   ]);
-  const products2 = products;
-  res.status(200).send(products2);
+  const types = await ProductModel.aggregate([
+    {
+      $match: {
+        type: { $exists: true },
+      },
+    },
+    {
+      $group: {
+        _id: "$type",
+      },
+    },
+  ]);
+  res.status(200).json({
+    products,
+    types: types.map((e) => e?._id),
+  });
 };
 module.exports.count = async (req, res) => {
   const count = await ProductModel.count();
