@@ -13,10 +13,27 @@ const {
 } = require("../utils/validate/productValidate");
 
 module.exports.fetch = async (req, res) => {
-  const { error } = rangeValidate.validate(req.params);
+  const { error } = rangeValidate.validate(req.query);
   if (error) return res.status(400).send(error.message);
-  const { max, min } = req.params;
+  const { max, min, type, name } = req.query;
   const users = await UserModel.aggregate([
+    {
+      $match: {
+        $and: [
+          { provider: { $regex: type || "" } },
+          {
+            $or: [
+              { firstName: { $regex: name || "" } },
+              { lastName: { $regex: name || "" } },
+            ],
+          },
+        ],
+      },
+    },
+    { $skip: Number(min) || 0 },
+    {
+      $limit: Number(max) || 10,
+    },
     {
       $lookup: {
         from: "orders",
@@ -54,8 +71,7 @@ module.exports.fetch = async (req, res) => {
       },
     },
   ]);
-  const userSlice = users.slice(min, max);
-  res.status(200).send(userSlice);
+  res.status(200).send(users);
 };
 module.exports.increaseViews = async (req, res) => {
   let views = await viewsModel.find({ page: { $exists: false } });

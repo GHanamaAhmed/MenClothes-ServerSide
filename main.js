@@ -17,6 +17,7 @@ const reels = require("./routes/reels/reels");
 const likes = require("./routes/likes/likes");
 const basket = require("./routes/basket/basket");
 const comments = require("./routes/comments/comments");
+const dashboard = require("./routes/dashboard/dashboard");
 
 const app = express();
 const port = 4000;
@@ -77,6 +78,8 @@ app.use("/likes", likes);
 app.use("/basket", basket);
 //Route comments
 app.use("/comments", comments);
+//Route dashboard
+app.use("/dashboard", dashboard);
 
 dbConnect()
   .then((res) => {
