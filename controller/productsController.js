@@ -254,23 +254,32 @@ module.exports.add = async (req, res, next) => {
       .toFile(newPath.replace(`${process.env.DOMAIN_NAME}/`, ""));
     removeFileUrl(convertUrlToPath(oldPath));
   });
-  req?.files?.photos?.map(async (e, i) => {
-    const oldPath = `${process.env.DOMAIN_NAME}/${product.path}/${e.filename}`;
-    const newPath = `${process.env.DOMAIN_NAME}/${product.path}/${
-      e.filename.split(".")[0]
-    }.webp`;
+  details.map((e, i) => {
+    let newPaths = [];
+    req?.files?.photos
+      ?.slice(
+        i ? details[i - 1].nPhotos : 0,
+        i ? details[i - 1]?.nPhotos + e.nPhotos : e.nPhotos
+      )
+      .map(async (e, i) => {
+        const oldPath = `${process.env.DOMAIN_NAME}/${product.path}/${e.filename}`;
+        const newPath = `${process.env.DOMAIN_NAME}/${product.path}/${
+          e.filename.split(".")[0]
+        }.webp`;
+        newPaths.push(newPath);
+        await sharp(convertUrlToPath(oldPath))
+          .webp()
+          .toFile(newPath.replace(`${process.env.DOMAIN_NAME}/`, ""));
+        removeFileUrl(convertUrlToPath(oldPath));
+      });
     const photo = {
-      photo: newPath,
+      photos: newPaths,
       sizes: details && details?.length >= i ? details[i]?.sizes : undefined,
-      colors: details && details?.length >= i ? details[i]?.colors : undefined,
+      color: details && details?.length >= i ? details[i]?.color : undefined,
       quntity:
         details && details?.length >= i ? details[i]?.quntity : undefined,
     };
     product.photos.push(photo);
-    await sharp(convertUrlToPath(oldPath))
-      .webp()
-      .toFile(newPath.replace(`${process.env.DOMAIN_NAME}/`, ""));
-    removeFileUrl(convertUrlToPath(oldPath));
   });
   await product.save();
   res.status(200).send(product);

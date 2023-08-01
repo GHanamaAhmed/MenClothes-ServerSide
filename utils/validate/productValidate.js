@@ -2,15 +2,16 @@ const joi = require("joi");
 const { objectId } = require("./validateObjctId");
 const details = joi.object().keys({
   sizes: joi.array(),
-  colors: joi.array(),
+  color: joi.string(),
   quntity: joi.number(),
+  nPhotos: joi.number().required(),
 });
 const addProductValidate = joi.object({
   name: joi.string().max(100).required(),
   reelId: objectId,
   quntity: joi.number().min(0),
   price: joi.number().required(),
-  details: joi.array().items(details),
+  details: joi.string(),
   photos: joi.any(),
   thumbanil: joi.any(),
   promotion: joi.number(),
