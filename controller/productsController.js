@@ -27,6 +27,8 @@ const {
 const likeModel = require("../models/likeModel");
 const mongoose = require("mongoose");
 const basketModel = require("../models/basketModel");
+const productModel = require("../models/productModel");
+const orderModel = require("../models/orderModel");
 
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
@@ -224,7 +226,11 @@ module.exports.fetchOne = async (req, res) => {
   res.status(200).send(product);
 };
 module.exports.add = async (req, res, next) => {
-  const { error } = addProductValidate.validate(req.body);
+  let body = { ...req?.body };
+  if (body && body.details) {
+    body.details = JSON.parse(body.details);
+  }
+  const { error } = addProductValidate.validate(body);
   if (error || !req.files?.thumbanil) {
     let delPath;
     if (req.files?.photos?.length) {
@@ -235,8 +241,7 @@ module.exports.add = async (req, res, next) => {
     removeFolder(delPath);
     return res.status(400).send(error || "thumbanil field is require!");
   }
-  const body = req?.body;
-  const details = body?.details ? JSON.parse(body?.details) : null; // Temporarily
+  const details = body?.details; // Temporarily
   delete body.details;
   const product = ProductModel({
     ...body,
@@ -307,7 +312,10 @@ module.exports.delete = async (req, res) => {
 };
 
 module.exports.update = async (req, res) => {
-  const body = req.body;
+  let body = { ...req.body };
+  if (body && body.details) {
+    body.details = JSON.parse(body.details);
+  }
   const { error } = updateProductValidate.validate(body);
   if (error) {
     let delPath;
@@ -320,7 +328,7 @@ module.exports.update = async (req, res) => {
     return res.status(400).send(error);
   }
   const id = body.id;
-  const details = body?.details ? JSON.parse(body?.details) : null; // Temporarily
+  const details = body?.details;
   delete body.id;
   delete body.details;
   const prevPhoto = await ProductModel.findById(id).then((res) => res.photos);
@@ -362,4 +370,45 @@ module.exports.update = async (req, res) => {
     removeFolder(baseUrl() + "/uploads/products/" + req.folderName);
   await product.save();
   res.status(200).send(product);
+};
+module.exports.statstique = async (req, res) => {
+  const products = await productModel.find({}).count();
+  const lastProducts = await productModel
+    .find({
+      createAt: { $gte: new Date(new Date() - 30 * 60 * 60 * 24 * 1000) },
+    })
+    .count();
+  const likes = await likeModel.find({}).count();
+  const lastLikes = await likeModel
+    .find({
+      createAt: { $gte: new Date(new Date() - 30 * 60 * 60 * 24 * 1000) },
+    })
+    .count();
+  const sales = await orderModel.find({ states: "completed" }).count();
+  const lastSales = await orderModel
+    .find({
+      createAt: {
+        $gte: new Date(new Date() - 30 * 60 * 60 * 24 * 1000),
+      },
+      states: "completed",
+    })
+    .count();
+  const returns =await orderModel.find({ states: "return" }).count();
+  const lastReturns =await orderModel.find({
+    createAt: {
+      $gte: new Date(new Date() - 30 * 60 * 60 * 24 * 1000),
+    },
+  }).count();
+  res
+    .status(200)
+    .json({
+      products,
+      lastProducts,
+      likes,
+      lastLikes,
+      sales,
+      lastSales,
+      returns,
+      lastReturns,
+    });
 };
