@@ -28,6 +28,7 @@ const {
 } = require("../utils/validate/reelValidate");
 const likeModel = require("../models/likeModel");
 const { default: mongoose } = require("mongoose");
+const commentModel = require("../models/commentModel");
 
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
@@ -595,4 +596,63 @@ module.exports.update = async (req, res, next) => {
   }
   await reel.save();
   return res.status(200).send(reel);
+};
+
+module.exports.statistique = async (req, res) => {
+  const reels = await ReelModel.find({}).count();
+  const lastReels = await ReelModel.find({
+    createAt: { $gt: new Date(new Date() - 1000 * 60 * 60 * 24 * 30) },
+  }).count();
+  const likes = await likeModel.find({ type: "reel" }).count();
+  const lastLikes = await likeModel
+    .find({
+      type: "reel",
+      createAt: { $gte: new Date(new Date() - 30 * 60 * 60 * 24 * 1000) },
+    })
+    .count();
+  const comment = await commentModel.find({ type: "reel" }).count();
+  const lastComment = await commentModel
+    .find({
+      type: "reel",
+      createAt: { $gte: new Date(new Date() - 30 * 60 * 60 * 24 * 1000) },
+    })
+    .count();
+  const views = await ReelModel.aggregate([
+    {
+      $project: {
+        viewsUsersIds: 1,
+      },
+    },
+    { $addFields: { views: { $size: "$viewsUsersIds" } } },
+    {
+      $group: {
+        _id: null,
+        views: { $sum: "$views" },
+      },
+    },
+  ]).then((data) => data.length && (data[0]?.views || 0));
+  const lastViews = await ReelModel.aggregate([
+    { $project: { viewsUsersIds: 1 } },
+    { $unwind: "$viewsUsersIds" },
+    {
+      $match: {
+        "viewsUsersIds.createAt": {
+          $gt: new Date(new Date() - 30 * 60 * 60 * 24 * 1000),
+        },
+      },
+    },
+    {
+      $count: "views",
+    },
+  ]).then((data) => data.length && (data[0]?.views || 0));
+  res.status(200).json({
+    reels,
+    lastReels,
+    views,
+    lastViews,
+    likes,
+    lastLikes,
+    comment,
+    lastComment,
+  });
 };

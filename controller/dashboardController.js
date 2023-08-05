@@ -30,7 +30,7 @@ module.exports.statictique = async (req, res) => {
         },
       },
     ])
-    .then((res) => res[0]?.prfits || 0);
+    .then((res) => res.length && (res[0]?.prfits || 0));
   const lastProfits = await orderModel
     .aggregate([
       {
@@ -52,5 +52,7 @@ module.exports.statictique = async (req, res) => {
   const views = await viewsModel
     .findOne({ page: { $exists: false } })
     .then((res) => res.counter);
-  res.status(200).json({ users, sales, profits, views, lastUsers, lastSales,lastProfits });
+  res
+    .status(200)
+    .json({ users, sales, profits, views, lastUsers, lastSales, lastProfits });
 };

@@ -391,9 +391,10 @@ module.exports.statstique = async (req, res) => {
       createAt: { $gte: new Date(new Date() - 30 * 60 * 60 * 24 * 1000) },
     })
     .count();
-  const likes = await likeModel.find({}).count();
+  const likes = await likeModel.find({type:"product"}).count();
   const lastLikes = await likeModel
     .find({
+      type:"product",
       createAt: { $gte: new Date(new Date() - 30 * 60 * 60 * 24 * 1000) },
     })
     .count();
