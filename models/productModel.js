@@ -52,6 +52,10 @@ const productSchema = new mongoose.Schema({
     type: Boolean,
     require: false,
   },
+  quntity: {
+    type: Number,
+    require: false,
+  },
   description: {
     type: String,
     required: false,
@@ -87,6 +91,11 @@ productSchema.pre("save", function (next) {
       this.showPromotion = true;
     }
   }
+  this.quntity = this.photos.reduce((some, e) => some + e.quntity, 0);
+  next();
+});
+productSchema.pre("update", function (next) {
+  this.quntity = this.photos.reduce((some, e) => some + e.quntity, 0);
   next();
 });
 

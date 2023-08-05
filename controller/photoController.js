@@ -52,7 +52,7 @@ module.exports.delete = async (req, res) => {
     });
     if (product) {
       product.photos = product.photos.filter((e) => {
-        return e.photo != cupp(type, folderName, fileName);
+        return !e.photos.includes(cupp(type, folderName, fileName));
       });
       await product.save();
     }

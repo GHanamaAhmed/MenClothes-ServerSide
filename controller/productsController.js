@@ -227,7 +227,7 @@ module.exports.fetchOne = async (req, res) => {
 };
 module.exports.add = async (req, res, next) => {
   let body = { ...req?.body };
-  if (body && body.details) {
+  if (body && body?.details) {
     body.details = JSON.parse(body.details);
   }
   const { error } = addProductValidate.validate(body);
@@ -239,10 +239,12 @@ module.exports.add = async (req, res, next) => {
       delPath = baseUrl() + "/" + req.files?.thumbanil[0]?.destination;
     }
     removeFolder(delPath);
-    return res.status(400).send(error || "thumbanil field is require!");
+    return res
+      .status(400)
+      .send(error?.message || "thumbanil field is require!");
   }
   const details = body?.details; // Temporarily
-  delete body.details;
+  delete body?.details;
   const product = ProductModel({
     ...body,
     photos: [],
@@ -259,7 +261,7 @@ module.exports.add = async (req, res, next) => {
       .toFile(newPath.replace(`${process.env.DOMAIN_NAME}/`, ""));
     removeFileUrl(convertUrlToPath(oldPath));
   });
-  details.map((e, i) => {
+  details?.map((e, i) => {
     let newPaths = [];
     req?.files?.photos
       ?.slice(
@@ -294,7 +296,7 @@ module.exports.upload = upload;
 
 module.exports.delete = async (req, res) => {
   const { error } = removeValidate.validate(req.body);
-  if (error) return res.status(400).send(error);
+  if (error) return res.status(400).send(error.message);
   const product = await ProductModel.findByIdAndDelete(req.body.id, {
     new: true,
   });
@@ -313,8 +315,8 @@ module.exports.delete = async (req, res) => {
 
 module.exports.update = async (req, res) => {
   let body = { ...req.body };
-  if (body && body.details) {
-    body.details = JSON.parse(body.details);
+  if (body && body?.details) {
+    body.details = JSON.parse(body?.details);
   }
   const { error } = updateProductValidate.validate(body);
   if (error) {
@@ -325,12 +327,12 @@ module.exports.update = async (req, res) => {
       delPath = baseUrl() + "/" + req.files?.thumbanil[0]?.destination;
     }
     removeFolder(delPath);
-    return res.status(400).send(error);
+    return res.status(400).send(error?.message);
   }
   const id = body.id;
   const details = body?.details;
   delete body.id;
-  delete body.details;
+  delete body?.details;
   const prevPhoto = await ProductModel.findById(id).then((res) => res.photos);
   const product = await ProductModel.findByIdAndUpdate(
     id,
@@ -350,21 +352,32 @@ module.exports.update = async (req, res) => {
     let newPath = path.resolve(__dirname, `../${product.path}/${e.filename}`);
     moveFile(currentPath, newPath);
   });
-  req?.files?.photos?.map((e) => {
+  details?.map((e, i) => {
+    let newPaths = [];
+    req?.files?.photos
+      ?.slice(
+        i ? details[i - 1].nPhotos : 0,
+        i ? details[i - 1]?.nPhotos + e.nPhotos : e.nPhotos
+      )
+      .map(async (e, i) => {
+        const oldPath = `${process.env.DOMAIN_NAME}/${product.path}/${e.filename}`;
+        const newPath = `${process.env.DOMAIN_NAME}/${product.path}/${
+          e.filename.split(".")[0]
+        }.webp`;
+        newPaths.push(newPath);
+        await sharp(convertUrlToPath(oldPath))
+          .webp()
+          .toFile(newPath.replace(`${process.env.DOMAIN_NAME}/`, ""));
+        removeFileUrl(convertUrlToPath(oldPath));
+      });
     const photo = {
-      photo: `${process.env.DOMAIN_NAME}/${product.path}/${e.filename}`,
+      photos: newPaths,
       sizes: details && details?.length >= i ? details[i]?.sizes : undefined,
-      colors: details && details?.length >= i ? details[i]?.colors : undefined,
+      color: details && details?.length >= i ? details[i]?.color : undefined,
       quntity:
         details && details?.length >= i ? details[i]?.quntity : undefined,
     };
     product.photos.push(photo);
-    let currentPath = path.resolve(
-      __dirname,
-      `../${e.destination}/${e.filename}`
-    );
-    let newPath = path.resolve(__dirname, `../${product.path}/${e.filename}`);
-    moveFile(currentPath, newPath);
   });
   req.folderName &&
     removeFolder(baseUrl() + "/uploads/products/" + req.folderName);
@@ -393,22 +406,22 @@ module.exports.statstique = async (req, res) => {
       states: "completed",
     })
     .count();
-  const returns =await orderModel.find({ states: "return" }).count();
-  const lastReturns =await orderModel.find({
-    createAt: {
-      $gte: new Date(new Date() - 30 * 60 * 60 * 24 * 1000),
-    },
-  }).count();
-  res
-    .status(200)
-    .json({
-      products,
-      lastProducts,
-      likes,
-      lastLikes,
-      sales,
-      lastSales,
-      returns,
-      lastReturns,
-    });
+  const returns = await orderModel.find({ states: "return" }).count();
+  const lastReturns = await orderModel
+    .find({
+      createAt: {
+        $gte: new Date(new Date() - 30 * 60 * 60 * 24 * 1000),
+      },
+    })
+    .count();
+  res.status(200).json({
+    products,
+    lastProducts,
+    likes,
+    lastLikes,
+    sales,
+    lastSales,
+    returns,
+    lastReturns,
+  });
 };
