@@ -3,6 +3,9 @@ const { objectId } = require("./validateObjctId");
 const removeValidate = joi.object({
   id: objectId.required(),
 });
+const couponValidate = joi.object({
+  code: joi.string().required(),
+});
 const fetchOneValidate = joi.object({
   id: objectId.required(),
 });
@@ -16,6 +19,7 @@ const rangeValidate = joi.object({
   max: joi.number(),
   type: joi.string(),
   name: joi.string(),
+  reverse: joi.string(),
 });
 const fetchOneValidateOP = joi.object({
   id: objectId,
@@ -26,4 +30,5 @@ module.exports = {
   removeValidate,
   rangeValidate,
   fetchOneValidateOP,
+  couponValidate,
 };

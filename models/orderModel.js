@@ -1,20 +1,39 @@
+const couponModel = require("./couponModel");
 const ProductModule = require("./productModel");
 const mongoose = require("mongoose");
 const orderSchema = new mongoose.Schema({
+  name: {
+    type: String,
+  },
+  phone: {
+    type: String,
+  },
+  photo: {
+    type: String,
+  },
   userId: {
     type: mongoose.Schema.Types.ObjectId,
-    required: true,
     ref: "user",
   },
   productsIds: {
     type: [
       {
+        name: String,
+        price: Number,
         id: { type: mongoose.Schema.Types.ObjectId, ref: "product" },
         quntity: Number,
-        size: Number,
-        color: Number,
+        size: String,
+        color: String,
+        thumbanil: String,
       },
     ],
+    required: true,
+  },
+  adress: {
+    type: String,
+  },
+  city: {
+    type: String,
     required: true,
   },
   createAt: {
@@ -22,16 +41,27 @@ const orderSchema = new mongoose.Schema({
     required: false,
     default: Date.now(),
   },
+  coupon: {
+    type: String,
+  },
   price: {
     type: String,
-    required: true,
   },
   states: {
     type: String,
     required: true,
-    enum: ["pending", "accepted", "rejected", "cancelled", "completed","return"],
+    enum: [
+      "pending",
+      "accepted",
+      "rejected",
+      "cancelled",
+      "completed",
+      "return",
+      "removed",
+    ],
     default: "pending",
   },
+  removed: Boolean,
 });
 orderSchema.pre("save", async function (next) {
   if (this.price === null || this.price === undefined) {
@@ -42,7 +72,7 @@ orderSchema.pre("save", async function (next) {
       (e) => (!e.showPrice || !e.price) && (!e.showPromotion || !e.promotion)
     );
     if (!p.length) {
-      let productsPrices = products.map((e) => {
+      let productsPrices = products.map((e, i) => {
         if (e.promotion && e.showPromotion) {
           return e.promotion * this.productsIds[i].quntity;
         }
@@ -50,7 +80,23 @@ orderSchema.pre("save", async function (next) {
           return e.price * this.productsIds[i].quntity;
         }
       });
-      this.price = productsPrices.reduce((sum, num) => sum + num, 0);
+      let price = productsPrices.reduce((sum, num) => sum + num, 0);
+      const coupon = await couponModel.findOne({ code: this.coupon });
+      if (coupon?.max || coupon?.expireAt) {
+        if (
+          !(
+            coupon?.max + 1 < coupon?.count ||
+            coupon?.expireAt - coupon.createAt <= 0
+          )
+        ) {
+          if (coupon.porcent) {
+            price = price * coupon.porcent;
+          } else {
+            price = price - coupon.price;
+          }
+        }
+      }
+      this.price = price;
     }
   }
   next();

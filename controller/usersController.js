@@ -15,7 +15,7 @@ const {
 module.exports.fetch = async (req, res) => {
   const { error } = rangeValidate.validate(req.query);
   if (error) return res.status(400).send(error.message);
-  const { max, min, type, name } = req.query;
+  const { max, min, type, name, reverse } = req.query;
   const users = await UserModel.aggregate([
     {
       $match: {
@@ -25,14 +25,16 @@ module.exports.fetch = async (req, res) => {
             $or: [
               { firstName: { $regex: name || "" } },
               { lastName: { $regex: name || "" } },
+              { email: { $regex: name || "" } },
             ],
           },
         ],
       },
     },
-    { $skip: Number(min) || 0 },
+    { $skip: Number(min) > 0 ? Number(min) : 0 },
     {
-      $limit: Number(max) || 10,
+      $limit:
+        Number(max) > 0 ? Number(max) : Number(min) > 0 ? Number(min) + 10 : 10,
     },
     {
       $lookup: {
@@ -70,6 +72,7 @@ module.exports.fetch = async (req, res) => {
         orders: 0,
       },
     },
+    { $sort: { createAt: reverse ? 1 : -1 } },
   ]);
   res.status(200).send(users);
 };

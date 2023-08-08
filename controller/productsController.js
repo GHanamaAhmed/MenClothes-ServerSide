@@ -78,9 +78,14 @@ module.exports.initialize = async (req, res, next) => {
 module.exports.fetch = async (req, res) => {
   const { error } = rangeValidate.validate(req.query);
   if (error) return res.status(400).send(error.message);
-  const { min, max, type, name } = req.query;
+  const { min, max, type, name, reverse } = req.query;
   const userId = req?.user?._id;
   const products = await ProductModel.aggregate([
+    { $skip: Number(min) > 0 ? Number(min) : 0 },
+    {
+      $limit:
+        Number(max) > 0 ? Number(max) : Number(min) > 0 ? Number(min) + 10 : 10,
+    },
     {
       $match: {
         $and: type
@@ -91,8 +96,6 @@ module.exports.fetch = async (req, res) => {
           : [{ name: { $regex: name ? name : "" } }],
       },
     },
-    { $skip: Number(min) || 0 },
-    { $limit: Number(max) || (Number(min) && Number(min) + 15) || 15 },
     {
       $lookup: {
         from: "likes",
@@ -143,6 +146,7 @@ module.exports.fetch = async (req, res) => {
         likes: 0,
       },
     },
+    { $sort: { createAt: reverse ? 1 : -1 } },
   ]);
   const types = await ProductModel.aggregate([
     {
@@ -391,10 +395,10 @@ module.exports.statstique = async (req, res) => {
       createAt: { $gte: new Date(new Date() - 30 * 60 * 60 * 24 * 1000) },
     })
     .count();
-  const likes = await likeModel.find({type:"product"}).count();
+  const likes = await likeModel.find({ type: "product" }).count();
   const lastLikes = await likeModel
     .find({
-      type:"product",
+      type: "product",
       createAt: { $gte: new Date(new Date() - 30 * 60 * 60 * 24 * 1000) },
     })
     .count();
@@ -410,6 +414,7 @@ module.exports.statstique = async (req, res) => {
   const returns = await orderModel.find({ states: "return" }).count();
   const lastReturns = await orderModel
     .find({
+      states: "return",
       createAt: {
         $gte: new Date(new Date() - 30 * 60 * 60 * 24 * 1000),
       },
