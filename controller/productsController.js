@@ -81,11 +81,6 @@ module.exports.fetch = async (req, res) => {
   const { min, max, type, name, reverse } = req.query;
   const userId = req?.user?._id;
   const products = await ProductModel.aggregate([
-    { $skip: Number(min) > 0 ? Number(min) : 0 },
-    {
-      $limit:
-        Number(max) > 0 ? Number(max) : Number(min) > 0 ? Number(min) + 10 : 10,
-    },
     {
       $match: {
         $and: type
@@ -147,6 +142,11 @@ module.exports.fetch = async (req, res) => {
       },
     },
     { $sort: { createAt: reverse ? 1 : -1 } },
+    { $skip: Number(min) > 0 ? Number(min) : 0 },
+    {
+      $limit:
+        Number(max) > 0 ? Number(max) : Number(min) > 0 ? Number(min) + 10 : 10,
+    },
   ]);
   const types = await ProductModel.aggregate([
     {

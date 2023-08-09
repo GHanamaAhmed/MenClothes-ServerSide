@@ -9,9 +9,11 @@ const {
 } = require("../utils/validate/genralValidate");
 
 module.exports.checkout = async (req, res) => {
+  console.log(req.body);
   const { error } = couponValidate.validate(req.body);
   if (error) return res.status(400).send(error.message);
-  const coupon = await couponModel.findOne({ code: req.code });
+  const coupon = await couponModel.findOne({ code: req.body?.code });
+  console.log(coupon);
   if (!coupon) return res.status(400).send("الكود خاطئ!");
   if (coupon?.max || coupon?.expireAt) {
     if (
@@ -65,30 +67,31 @@ module.exports.fetchCoupon = async (req, res) => {
   if (error) return res.status(400).send(error.message);
   const { min, max, used, expire, reverse, name } = req.query;
   const coupons = await couponModel.aggregate([
-    { $skip: Number(min) > 0 ? Number(min) : 0 },
-    {
-      $limit:
-        Number(max) > 0 ? Number(max) : Number(min) > 0 ? Number(min) + 10 : 10,
-    },
     {
       $match: {
+        $expr: {
+          $and:
+            expire !== undefined
+              ? Number(expire)
+                ? [
+                    {
+                      $or: [
+                        { $gte: ["$count", "$max"] },
+                        { $lte: ["$expireAt", new Date()] },
+                      ],
+                    },
+                    { $gt: ["$expireAt", 0] },
+                  ]
+                : [
+                    { $lt: ["$count", "$max"] },
+                    { $gt: ["$expireAt", new Date()] },
+                  ]
+              : [],
+        },
         $and: [
           {
             code: { $regex: name ? name : "" },
           },
-          expire !== undefined
-            ? {
-                $and: Number(expire)
-                  ? [
-                      { count: { $gte: "$max" } },
-                      { expireAt: { $lte: new Date() } },
-                    ]
-                  : [
-                      { count: { $lt: "$max" } },
-                      { expireAt: { $gt: new Date() } },
-                    ],
-              }
-            : {},
           used !== undefined
             ? {
                 $and: Number(used)
@@ -100,6 +103,11 @@ module.exports.fetchCoupon = async (req, res) => {
       },
     },
     { $sort: { createAt: Number(reverse) ? 1 : -1 } },
+    { $skip: Number(min) > 0 ? Number(min) : 0 },
+    {
+      $limit:
+        Number(max) > 0 ? Number(max) : Number(min) > 0 ? Number(min) + 10 : 10,
+    },
   ]);
   res.status(200).send(coupons);
 };

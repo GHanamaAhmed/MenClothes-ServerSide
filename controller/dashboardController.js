@@ -46,7 +46,7 @@ module.exports.statictique = async (req, res) => {
       {
         $match: {
           createAt: {
-            $gte:new Date(Date.now() - 30 * 1000 * 60 * 60 * 24),
+            $gte: new Date(Date.now() - 30 * 1000 * 60 * 60 * 24),
           },
           states: "completed",
         },
@@ -73,14 +73,12 @@ module.exports.statictique = async (req, res) => {
     .aggregate([
       {
         $match: {
-          $and: [
-            { $or: [{ max: { $exists: false } }, { count: { $lt: "$max" } }] },
-            {
-              $or: [
-                { expireAt: { $exists: false } },
-                { expireAt: { $gte: new Date() } },
-              ],
-            },
+          $expr: {
+            $or: [{ $lte: ["$max", 0] }, { $lt: ["$count", "$max"] }],
+          },
+          $or: [
+            { expireAt: { $exists: false } },
+            { expireAt: { $gte: new Date() } },
           ],
         },
       },
@@ -90,13 +88,15 @@ module.exports.statictique = async (req, res) => {
     .aggregate([
       {
         $match: {
+          $expr: {
+            $or: [{ $lte: ["$max", 0] }, { $lt: ["$count", "$max"] }],
+          },
           $and: [
             {
               createAt: {
                 $gte: new Date(Date.now() - 30 * 1000 * 60 * 60 * 24),
               },
             },
-            { $or: [{ max: { $exists: false } }, { count: { $lt: "$max" } }] },
             {
               $or: [
                 { expireAt: { $exists: false } },
@@ -121,27 +121,28 @@ module.exports.statictique = async (req, res) => {
     .then((res) => res.length);
   const couponSales = await orderModel
     .aggregate([
-      { $match: { coupon: { $exists: true } } },
+      { $match: { coupon: { $exists: true }, states: "completed" } },
       {
         $group: {
           _id: null,
-          count: { $sum: "$price" },
+          count: { $sum: { $toDouble: "$disCount.price" } },
         },
       },
     ])
-    .then((res) => res?.[0]?.count || 0);
+    .then((res) => res?.[0]?.count||0);
   const lastCouponSales = await orderModel
     .aggregate([
       {
         $match: {
           coupon: { $exists: true },
+          states: "completed",
           createAt: { $gte: new Date(Date.now() - 30 * 1000 * 60 * 60 * 24) },
         },
       },
       {
         $group: {
           _id: null,
-          count: { $sum: "$price" },
+          count:  { $sum: { $toDouble: "$disCount.price" } },
         },
       },
     ])

@@ -1,7 +1,8 @@
 const { authMiddleware } = require("../../middlewares/middlewareAuth");
-const { auth } = require("../../controller/authController");
+const { auth, logOut } = require("../../controller/authController");
 const router = require("express").Router();
 
-router.head("/", authMiddleware,auth);
+router.head("/", authMiddleware, auth);
+router.get("/", authMiddleware, logOut);
 
 module.exports = router;

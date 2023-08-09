@@ -31,11 +31,6 @@ module.exports.fetch = async (req, res) => {
         ],
       },
     },
-    { $skip: Number(min) > 0 ? Number(min) : 0 },
-    {
-      $limit:
-        Number(max) > 0 ? Number(max) : Number(min) > 0 ? Number(min) + 10 : 10,
-    },
     {
       $lookup: {
         from: "orders",
@@ -73,6 +68,11 @@ module.exports.fetch = async (req, res) => {
       },
     },
     { $sort: { createAt: reverse ? 1 : -1 } },
+    { $skip: Number(min) > 0 ? Number(min) : 0 },
+    {
+      $limit:
+        Number(max) > 0 ? Number(max) : Number(min) > 0 ? Number(min) + 10 : 10,
+    },
   ]);
   res.status(200).send(users);
 };

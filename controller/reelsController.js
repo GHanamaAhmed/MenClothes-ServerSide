@@ -84,11 +84,6 @@ module.exports.fetchAll = async (req, res) => {
         _id: { $ne: new mongoose.Types.ObjectId(id) },
       },
     },
-    { $skip: Number(min) > 0 ? Number(min) : 0 },
-    {
-      $limit:
-        Number(max) > 0 ? Number(max) : Number(min) > 0 ? Number(min) + 10 : 10,
-    },
     {
       $lookup: {
         from: "likes",
@@ -188,6 +183,11 @@ module.exports.fetchAll = async (req, res) => {
         price: { $arrayElemAt: ["$productId.price", 0] },
         productId: { $arrayElemAt: ["$productId._id", 0] },
       },
+    },
+    { $skip: Number(min) > 0 ? Number(min) : 0 },
+    {
+      $limit:
+        Number(max) > 0 ? Number(max) : Number(min) > 0 ? Number(min) + 3 : 3,
     },
   ]);
   const firstReel = await ReelModel.aggregate([
@@ -301,35 +301,39 @@ module.exports.fetchAll = async (req, res) => {
   return res.status(200).send(reels);
 };
 module.exports.add = async (req, res, next) => {
-  const { error } = addReelValidate.validate(req.body);
-  if (error || !req.file) {
-    if (req.file) {
-      const delPath =
-        baseUrl() + `/${req.file?.destination}/${req.file?.filename}`;
-      removeFolder(delPath);
+  try {
+    const { error } = addReelValidate.validate(req.body);
+    if (error || !req.file) {
+      if (req.file) {
+        const delPath =
+          baseUrl() + `/${req.file?.destination}/${req.file?.filename}`;
+        removeFolder(delPath);
+      }
+      return res.status(400).send(error.message || "video is require!");
     }
-    return res.status(400).send(error.message || "video is require!");
-  }
-  const reel = new ReelModel({
-    ...req.body,
-  });
-  if (req.file) {
-    const Path = `${process.env.DOMAIN_NAME}/${req.file.destination}/${req.file.filename}`;
-    reel.video = Path;
-    const thumbanilName = `thumbanil+${uuid()}.webp`;
-    const thumbanilUrl = `${process.env.DOMAIN_NAME}/${req.file.destination}/thumbanils/${thumbanilName}`;
-    ffmpeg(`${baseUrl()}/${req.file.destination}/${req.file.filename}`)
-      .thumbnail({
-        timestamps: ["50%"],
-        folder: "uploads/reels/thumbanils",
-        filename: thumbanilName,
-      })
-      .toFormat("webp")
-      .on("end", async () => {
-        reel.thumbanil = thumbanilUrl;
-        await reel.save();
-        return res.status(200).send(reel);
-      });
+    const reel = new ReelModel({
+      ...req.body,
+    });
+    if (req.file) {
+      const Path = `${process.env.DOMAIN_NAME}/${req.file.destination}/${req.file.filename}`;
+      reel.video = Path;
+      const thumbanilName = `thumbanil+${uuid()}.webp`;
+      const thumbanilUrl = `${process.env.DOMAIN_NAME}/${req.file.destination}/thumbanils/${thumbanilName}`;
+      ffmpeg(`${baseUrl()}/${req.file.destination}/${req.file.filename}`)
+        .thumbnail({
+          timestamps: ["50%"],
+          folder: "uploads/reels/thumbanils",
+          filename: thumbanilName,
+        })
+        .toFormat("webp")
+        .on("end", async () => {
+          reel.thumbanil = thumbanilUrl;
+          await reel.save();
+          return res.status(200).send(reel);
+        });
+    }
+  } catch (error) {
+    res.status(400).send(error);
   }
 };
 

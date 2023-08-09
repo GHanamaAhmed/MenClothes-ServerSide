@@ -99,13 +99,13 @@ orderSchema.pre("save", async function (next) {
           )
         ) {
           if (coupon.porcent) {
-            this.price = price * coupon.porcent;
+            this.price = price * (1 - coupon.porcent);
             this.disCount.type = "porcent";
-            this.disCount.price = this.price - price * coupon.porcent;
+            this.disCount.price = price - price * (1 - coupon.porcent);
           } else {
-            price = price - coupon.price;
+            this.price = price - coupon.price;
             this.disCount.type = "price";
-            this.disCount.price = this.price - (price - coupon.price);
+            this.disCount.price = price - (price - coupon.price);
           }
         }
       }

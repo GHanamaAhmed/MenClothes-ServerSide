@@ -11,14 +11,12 @@ module.exports.stattistique = async (req, res) => {
     .aggregate([
       {
         $match: {
-          $and: [
-            { $or: [{ max: { $exists: false } }, { count: { $lt: "$max" } }] },
-            {
-              $or: [
-                { expireAt: { $exists: false } },
-                { expireAt: { $gte: new Date() } },
-              ],
-            },
+          $expr: {
+            $or: [{ $lte: ["$max", 0] }, { $lt: ["$count", "$max"] }],
+          },
+          $or: [
+            { expireAt: { $exists: false } },
+            { expireAt: { $gte: new Date() } },
           ],
         },
       },
@@ -28,13 +26,15 @@ module.exports.stattistique = async (req, res) => {
     .aggregate([
       {
         $match: {
+          $expr: {
+            $or: [{ $lte: ["$max", 0] }, { $lt: ["$count", "$max"] }],
+          },
           $and: [
             {
               createAt: {
                 $gte: new Date(Date.now() - 30 * 1000 * 60 * 60 * 24),
               },
             },
-            { $or: [{ max: { $exists: false } }, { count: { $lt: "$max" } }] },
             {
               $or: [
                 { expireAt: { $exists: false } },
@@ -47,14 +47,16 @@ module.exports.stattistique = async (req, res) => {
     ])
     .then((res) => res.length);
   const usedCoupon = (await couponModel.find({ count: { $gt: 0 } })).length;
-  const lastUsedCoupon = await couponModel.aggregate([
-    {
-      $match: {
-        count: { $gt: 0 },
-        createAt: { $gte: new Date(Date.now() - 30 * 1000 * 60 * 60 * 24) },
+  const lastUsedCoupon = await couponModel
+    .aggregate([
+      {
+        $match: {
+          count: { $gt: 0 },
+          createAt: { $gte: new Date(Date.now() - 30 * 1000 * 60 * 60 * 24) },
+        },
       },
-    },
-  ]);
+    ])
+    .then((res) => res.length);
   const couponSales = (await orderModel.find({ coupon: { $exists: true } }))
     .length;
   const lastCouponSales = (
@@ -63,7 +65,14 @@ module.exports.stattistique = async (req, res) => {
       createAt: { $gte: new Date(Date.now() - 30 * 1000 * 60 * 60 * 24) },
     })
   ).length;
-  res
-    .status(200)
-    .json({ coupon, lastCoupon, restCoupon, usedCoupon, couponSales,lastCouponSales,lastRestCoupon,lastUsedCoupon });
+  res.status(200).json({
+    coupon,
+    lastCoupon,
+    restCoupon,
+    usedCoupon,
+    couponSales,
+    lastCouponSales,
+    lastRestCoupon,
+    lastUsedCoupon,
+  });
 };

@@ -22,11 +22,6 @@ module.exports.getOrder = async (req, res) => {
   if (error) return res.status(400).send(error.message);
   const { min, max, type, name, reverse } = req.query;
   const orders = await orderModel.aggregate([
-    { $skip: Number(min) > 0 ? Number(min) : 0 },
-    {
-      $limit:
-        Number(max) > 0 ? Number(max) : Number(min) > 0 ? Number(min) + 10 : 10,
-    },
     {
       $match: {
         $and: type
@@ -74,6 +69,11 @@ module.exports.getOrder = async (req, res) => {
       },
     },
     { $sort: { createAt: reverse ? 1 : -1 } },
+    { $skip: Number(min) > 0 ? Number(min) : 0 },
+    {
+      $limit:
+        Number(max) > 0 ? Number(max) : Number(min) > 0 ? Number(min) + 10 : 10,
+    },
   ]);
   res.status(200).send(orders);
 };

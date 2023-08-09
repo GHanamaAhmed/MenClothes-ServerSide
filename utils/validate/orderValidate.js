@@ -15,7 +15,7 @@ const addOrderValidate = joi.object({
   coupon: joi.string(),
   adress: joi.string().required(),
   name: joi.string().required(),
-  phone: joi.string().required(),
+  phone: joi.number().required(),
   city: joi.string().required(),
   photo: joi.string(),
 });
@@ -26,7 +26,7 @@ const updateOrderValidate = joi.object({
   coupon: joi.string(),
   adress: joi.string(),
   name: joi.string(),
-  phone: joi.string(),
+  phone: joi.number(),
   city: joi.string(),
   photo: joi.string(),
   states: joi.string(),
