@@ -5,14 +5,14 @@ const postCaodeValidate = joi.object({
   price: joi.string(),
   code: joi.string().required(),
   max: joi.number().required(),
-  expireAt: joi.number(),
+  expireAt: joi.date(),
 });
 const fetchCaodeValidate = joi.object({
   max: joi.number().max(100),
   min: joi.string(),
   expire: joi.number(),
-  used: joi.boolean(),
-  reverse: joi.boolean(),
+  used: joi.number(),
+  reverse: joi.number(),
   name: joi.string(),
 });
 const getRepliesValidate = joi.object({

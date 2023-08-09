@@ -4,7 +4,7 @@ module.exports.stattistique = async (req, res) => {
   const coupon = await couponModel.find({}).count();
   const lastCoupon = await couponModel
     .find({
-      createAt: { $gte: new Date(new Date() - 30 * 60 * 60 * 24 * 1000) },
+      createAt: { $gte: new Date(Date.now() - 30 * 1000 * 60 * 60 * 24) },
     })
     .count();
   const restCoupon = await couponModel
@@ -31,7 +31,7 @@ module.exports.stattistique = async (req, res) => {
           $and: [
             {
               createAt: {
-                $gte: new Date(new Date() - 30 * 60 * 60 * 24 * 1000),
+                $gte: new Date(Date.now() - 30 * 1000 * 60 * 60 * 24),
               },
             },
             { $or: [{ max: { $exists: false } }, { count: { $lt: "$max" } }] },
@@ -51,7 +51,7 @@ module.exports.stattistique = async (req, res) => {
     {
       $match: {
         count: { $gt: 0 },
-        createAt: { $gte: new Date(new Date() - 30 * 60 * 60 * 24 * 1000) },
+        createAt: { $gte: new Date(Date.now() - 30 * 1000 * 60 * 60 * 24) },
       },
     },
   ]);
@@ -60,7 +60,7 @@ module.exports.stattistique = async (req, res) => {
   const lastCouponSales = (
     await orderModel.find({
       coupon: { $exists: true },
-      createAt: { $gte: new Date(new Date() - 30 * 60 * 60 * 24 * 1000) },
+      createAt: { $gte: new Date(Date.now() - 30 * 1000 * 60 * 60 * 24) },
     })
   ).length;
   res

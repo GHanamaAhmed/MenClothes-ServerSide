@@ -392,21 +392,21 @@ module.exports.statstique = async (req, res) => {
   const products = await productModel.find({}).count();
   const lastProducts = await productModel
     .find({
-      createAt: { $gte: new Date(new Date() - 30 * 60 * 60 * 24 * 1000) },
+      createAt: { $gte: new Date(Date.now() - 30 * 1000 * 60 * 60 * 24) },
     })
     .count();
   const likes = await likeModel.find({ type: "product" }).count();
   const lastLikes = await likeModel
     .find({
       type: "product",
-      createAt: { $gte: new Date(new Date() - 30 * 60 * 60 * 24 * 1000) },
+      createAt: { $gte: new Date(Date.now() - 30 * 1000 * 60 * 60 * 24) },
     })
     .count();
   const sales = await orderModel.find({ states: "completed" }).count();
   const lastSales = await orderModel
     .find({
       createAt: {
-        $gte: new Date(new Date() - 30 * 60 * 60 * 24 * 1000),
+        $gte: new Date(Date.now() - 30 * 1000 * 60 * 60 * 24),
       },
       states: "completed",
     })
@@ -416,7 +416,7 @@ module.exports.statstique = async (req, res) => {
     .find({
       states: "return",
       createAt: {
-        $gte: new Date(new Date() - 30 * 60 * 60 * 24 * 1000),
+        $gte: new Date(Date.now() - 30 * 1000 * 60 * 60 * 24),
       },
     })
     .count();

@@ -385,14 +385,14 @@ module.exports.statistique = async (req, res) => {
   const lastLikes = await likeModel
     .find({
       type: "reel",
-      createAt: { $gte: new Date(new Date() - 30 * 60 * 60 * 24 * 1000) },
+      createAt: { $gte: new Date(Date.now() - 30 * 1000 * 60 * 60 * 24) },
     })
     .count();
   const comment = await commentModel.find({ type: "reel" }).count();
   const lastComment = await commentModel
     .find({
       type: "reel",
-      createAt: { $gte: new Date(new Date() - 30 * 60 * 60 * 24 * 1000) },
+      createAt: { $gte: new Date(Date.now() - 30 * 1000 * 60 * 60 * 24) },
     })
     .count();
   const views = await ReelModel.aggregate([
@@ -415,7 +415,7 @@ module.exports.statistique = async (req, res) => {
     {
       $match: {
         "viewsUsersIds.createAt": {
-          $gt: new Date(new Date() - 30 * 60 * 60 * 24 * 1000),
+          $gt: new Date(Date.now() - 30 * 1000 * 60 * 60 * 24),
         },
       },
     },

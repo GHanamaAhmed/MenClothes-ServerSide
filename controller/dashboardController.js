@@ -11,14 +11,14 @@ module.exports.statictique = async (req, res) => {
   const products = await productModel.find({}).count();
   const lastProducts = await productModel
     .find({
-      createAt: { $gte: new Date(new Date() - 30 * 60 * 60 * 24 * 1000) },
+      createAt: { $gte: new Date(Date.now() - 30 * 1000 * 60 * 60 * 24) },
     })
     .count();
   const users = await userModel.find().count();
   const lastUsers = await userModel
     .find({
       createAt: {
-        $gte: new Date(new Date() - 30 * 60 * 60 * 24 * 1000),
+        $gte: new Date(Date.now() - 30 * 1000 * 60 * 60 * 24),
       },
     })
     .count();
@@ -26,7 +26,7 @@ module.exports.statictique = async (req, res) => {
   const lastSales = await orderModel
     .find({
       createAt: {
-        $gte: new Date(new Date() - 30 * 60 * 60 * 24 * 1000),
+        $gte: new Date(Date.now() - 30 * 1000 * 60 * 60 * 24),
       },
       states: "completed",
     })
@@ -46,7 +46,7 @@ module.exports.statictique = async (req, res) => {
       {
         $match: {
           createAt: {
-            $gte: new Date(new Date() - 30 * 60 * 60 * 24 * 1000),
+            $gte:new Date(Date.now() - 30 * 1000 * 60 * 60 * 24),
           },
           states: "completed",
         },
@@ -66,7 +66,7 @@ module.exports.statictique = async (req, res) => {
   const coupon = await couponModel.find({}).count();
   const lastCoupon = await couponModel
     .find({
-      createAt: { $gte: new Date(new Date() - 30 * 60 * 60 * 24 * 1000) },
+      createAt: { $gte: new Date(Date.now() - 30 * 1000 * 60 * 60 * 24) },
     })
     .count();
   const restCoupon = await couponModel
@@ -93,7 +93,7 @@ module.exports.statictique = async (req, res) => {
           $and: [
             {
               createAt: {
-                $gte: new Date(new Date() - 30 * 60 * 60 * 24 * 1000),
+                $gte: new Date(Date.now() - 30 * 1000 * 60 * 60 * 24),
               },
             },
             { $or: [{ max: { $exists: false } }, { count: { $lt: "$max" } }] },
@@ -114,7 +114,7 @@ module.exports.statictique = async (req, res) => {
       {
         $match: {
           count: { $gt: 0 },
-          createAt: { $gte: new Date(new Date() - 30 * 60 * 60 * 24 * 1000) },
+          createAt: { $gte: new Date(Date.now() - 30 * 1000 * 60 * 60 * 24) },
         },
       },
     ])
@@ -135,7 +135,7 @@ module.exports.statictique = async (req, res) => {
       {
         $match: {
           coupon: { $exists: true },
-          createAt: { $gte: new Date(new Date() - 30 * 60 * 60 * 24 * 1000) },
+          createAt: { $gte: new Date(Date.now() - 30 * 1000 * 60 * 60 * 24) },
         },
       },
       {
@@ -151,14 +151,14 @@ module.exports.statictique = async (req, res) => {
   const lastOrders = await orderModel
     .find({
       states: { $ne: "removed" },
-      createAt: { $gte: new Date(new Date() - 30 * 60 * 60 * 24 * 1000) },
+      createAt: { $gte: new Date(Date.now() - 30 * 1000 * 60 * 60 * 24) },
     })
     .count();
   const likes = await likeModel.find({ type: "product" }).count();
   const lastLikes = await likeModel
     .find({
       type: "product",
-      createAt: { $gte: new Date(new Date() - 30 * 60 * 60 * 24 * 1000) },
+      createAt: { $gte: new Date(Date.now() - 30 * 1000 * 60 * 60 * 24) },
     })
     .count();
 
@@ -167,7 +167,7 @@ module.exports.statictique = async (req, res) => {
     .find({
       states: "return",
       createAt: {
-        $gte: new Date(new Date() - 30 * 60 * 60 * 24 * 1000),
+        $gte: new Date(Date.now() - 30 * 1000 * 60 * 60 * 24),
       },
     })
     .count();
@@ -181,7 +181,7 @@ module.exports.statictique = async (req, res) => {
   const lastComment = await commentModel
     .find({
       type: "reel",
-      createAt: { $gte: new Date(new Date() - 30 * 60 * 60 * 24 * 1000) },
+      createAt: { $gte: new Date(Date.now() - 30 * 1000 * 60 * 60 * 24) },
     })
     .count();
   const viewsReels = await reelModel
@@ -207,7 +207,7 @@ module.exports.statictique = async (req, res) => {
       {
         $match: {
           "viewsUsersIds.createAt": {
-            $gt: new Date(new Date() - 30 * 60 * 60 * 24 * 1000),
+            $gt: new Date(Date.now() - 30 * 1000 * 60 * 60 * 24),
           },
         },
       },

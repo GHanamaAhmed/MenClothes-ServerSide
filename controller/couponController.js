@@ -45,12 +45,10 @@ module.exports.postCode = async (req, res) => {
     coupon = new couponModel({
       ...body,
       porcent,
-      expireAt: new Date(new Date() + Number(body.expireAt) * 1000 * 60 * 60 * 24),
     });
   } else {
     coupon = new couponModel({
       ...body,
-      expireAt: new Date(new Date() + Number(body.expireAt) * 1000 * 60 * 60 * 24),
     });
   }
   await coupon.save();
@@ -63,51 +61,45 @@ module.exports.deleteCode = async (req, res) => {
   res.status(200).send(coupon);
 };
 module.exports.fetchCoupon = async (req, res) => {
-  try {
-    const { error } = fetchCaodeValidate.validate(req.query);
-    if (error) return res.status(400).send(error.message);
-    const { min, max, used, expire, reverse, name } = req.query;
-    const coupons = await couponModel.aggregate([
-      { $skip: Number(min) > 0 ? Number(min) : 0 },
-      {
-        $limit:
-          Number(max) > 0
-            ? Number(max)
-            : Number(min) > 0
-            ? Number(min) + 10
-            : 10,
+  const { error } = fetchCaodeValidate.validate(req.query);
+  if (error) return res.status(400).send(error.message);
+  const { min, max, used, expire, reverse, name } = req.query;
+  const coupons = await couponModel.aggregate([
+    { $skip: Number(min) > 0 ? Number(min) : 0 },
+    {
+      $limit:
+        Number(max) > 0 ? Number(max) : Number(min) > 0 ? Number(min) + 10 : 10,
+    },
+    {
+      $match: {
+        $and: [
+          {
+            code: { $regex: name ? name : "" },
+          },
+          expire !== undefined
+            ? {
+                $and: Number(expire)
+                  ? [
+                      { count: { $gte: "$max" } },
+                      { expireAt: { $lte: new Date() } },
+                    ]
+                  : [
+                      { count: { $lt: "$max" } },
+                      { expireAt: { $gt: new Date() } },
+                    ],
+              }
+            : {},
+          used !== undefined
+            ? {
+                $and: Number(used)
+                  ? [{ count: { $gt: 0 } }]
+                  : [{ count: { $eq: 0 } }],
+              }
+            : {},
+        ],
       },
-      {
-        $match: {
-          $and: [
-            { code: { $regex: name ? name : "" } },
-            expire !== undefined
-              ? {
-                  $and: expire
-                    ? [
-                        { count: { $gte: "$max" } },
-                        { expireAt: { $lte: new Date() } },
-                      ]
-                    : [
-                        { count: { $lt: "$max" } },
-                        { expireAt: { $gt: new Date() } },
-                      ],
-                }
-              : {},
-            used !== undefined
-              ? {
-                  $and: used
-                    ? [{ count: { $gt: 0 } }]
-                    : [{ count: { $eq: 0 } }],
-                }
-              : {},
-          ],
-        },
-      },
-      { $sort: { createAt: reverse ? 1 : -1 } },
-    ]);
-    res.status(200).send(coupons);
-  } catch (err) {
-    res.status(400).send(err);
-  }
+    },
+    { $sort: { createAt: Number(reverse) ? 1 : -1 } },
+  ]);
+  res.status(200).send(coupons);
 };
