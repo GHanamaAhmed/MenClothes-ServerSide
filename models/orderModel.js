@@ -44,6 +44,15 @@ const orderSchema = new mongoose.Schema({
   coupon: {
     type: String,
   },
+  disCount: {
+    type: {
+      type: String,
+      enum: ["porcent", "price"],
+    },
+    price: {
+      type: Number,
+    },
+  },
   price: {
     type: String,
   },
@@ -90,9 +99,13 @@ orderSchema.pre("save", async function (next) {
           )
         ) {
           if (coupon.porcent) {
-            price = price * coupon.porcent;
+            this.price = price * coupon.porcent;
+            this.disCount.type = "porcent";
+            this.disCount.price = this.price - price * coupon.porcent;
           } else {
             price = price - coupon.price;
+            this.disCount.type = "price";
+            this.disCount.price = this.price - (price - coupon.price);
           }
         }
       }

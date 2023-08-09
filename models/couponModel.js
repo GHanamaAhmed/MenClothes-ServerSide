@@ -14,6 +14,7 @@ const couponSchema = new mongoose.Schema({
   },
   count: {
     type: Number,
+    default:0
   },
   expireAt: {
     type: Date,

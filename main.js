@@ -21,6 +21,8 @@ const dashboard = require("./routes/dashboard/dashboard");
 const coupon = require("./routes/coupon/coupon");
 const order = require("./routes/order/order");
 const cities = require("./routes/cities/cities");
+const statistique = require("./routes/statistique/statistique");
+
 
 const app = express();
 const port = 4000;
@@ -92,6 +94,8 @@ app.use("/coupon", coupon);
 app.use("/orders", order);
 //Route cities
 app.use("/cities", cities);
+//Route statistique
+app.use("/statistique", statistique);
 
 dbConnect()
   .then((res) => {
