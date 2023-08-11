@@ -17,6 +17,7 @@ const addOrderValidate = joi.object({
   name: joi.string().required(),
   phone: joi.number().required(),
   city: joi.string().required(),
+  delivery: joi.string().valid("deleveryAgency", "homeDelivery").required(),
   photo: joi.string(),
 });
 const updateOrderValidate = joi.object({
@@ -33,5 +34,5 @@ const updateOrderValidate = joi.object({
 });
 module.exports = {
   addOrderValidate,
-  updateOrderValidate
+  updateOrderValidate,
 };

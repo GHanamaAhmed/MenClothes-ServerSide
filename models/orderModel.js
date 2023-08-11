@@ -56,6 +56,11 @@ const orderSchema = new mongoose.Schema({
   price: {
     type: String,
   },
+  delivery: {
+    type: String,
+    enum: ["deleveryAgency", "homeDelivery"],
+    default: "deleveryAgency",
+  },
   states: {
     type: String,
     required: true,
