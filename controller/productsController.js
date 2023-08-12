@@ -60,7 +60,8 @@ const upload = multer({
       mimeType == "image/x-png" ||
       mimeType == "image/png" ||
       mimeType == "image/jpeg" ||
-      mimeType == "image/gif"
+      mimeType == "image/gif" ||
+      mimeType == "image/webp"
     ) {
       cb(null, true);
     } else {
@@ -318,12 +319,12 @@ module.exports.delete = async (req, res) => {
 };
 
 module.exports.update = async (req, res) => {
-  let body = { ...req.body };
+  let body = { ...req?.body };
   if (body && body?.details) {
-    body.details = JSON.parse(body?.details);
+    body.details = JSON.parse(body.details);
   }
   const { error } = updateProductValidate.validate(body);
-  if (error) {
+  if (error || !req.files?.thumbanil) {
     let delPath;
     if (req.files?.photos?.length) {
       delPath = baseUrl() + "/" + req.files?.photos[0]?.destination;
@@ -331,30 +332,44 @@ module.exports.update = async (req, res) => {
       delPath = baseUrl() + "/" + req.files?.thumbanil[0]?.destination;
     }
     removeFolder(delPath);
-    return res.status(400).send(error?.message);
+    return res
+      .status(400)
+      .send(error?.message || "thumbanil field is require!");
   }
-  const id = body.id;
-  const details = body?.details;
-  delete body.id;
+  const id = body?.id;
+  delete body?.id;
+  const details = body?.details; // Temporarily
   delete body?.details;
-  const prevPhoto = await ProductModel.findById(id).then((res) => res.photos);
+  const prevProduct = await ProductModel.findById(id);
+  const pathName = path.resolve(__dirname, "../" + prevProduct?.path);
+  if (fs.existsSync(pathName) && prevProduct?.path) {
+    try {
+      removeFolder(pathName);
+    } catch (error) {
+      return res.status(500).send(error);
+    }
+  }
   const product = await ProductModel.findByIdAndUpdate(
     id,
     {
-      $set: { ...body },
+      $set: {
+        ...body,
+        photos: [],
+        path: req.folderName && "uploads/products/" + req.folderName,
+      },
     },
     { new: true }
   );
-  product.photos = prevPhoto;
-  req?.files?.thumbanil?.map((e) => {
-    product.thumbanil && removeFileUrl(product.thumbanil);
-    product.thumbanil = `${process.env.DOMAIN_NAME}/${product.path}/${e.filename}`;
-    let currentPath = path.resolve(
-      __dirname,
-      `../${e.destination}/${e.filename}`
-    );
-    let newPath = path.resolve(__dirname, `../${product.path}/${e.filename}`);
-    moveFile(currentPath, newPath);
+  req?.files?.thumbanil?.map(async (e) => {
+    const oldPath = `${process.env.DOMAIN_NAME}/${product.path}/${e.filename}`;
+    const newPath = `${process.env.DOMAIN_NAME}/${product.path}/${
+      e.filename.split(".")[0]
+    }.webp`;
+    product.thumbanil = newPath;
+    await sharp(convertUrlToPath(oldPath))
+      .webp()
+      .toFile(newPath.replace(`${process.env.DOMAIN_NAME}/`, ""));
+    removeFileUrl(convertUrlToPath(oldPath));
   });
   details?.map((e, i) => {
     let newPaths = [];
@@ -383,8 +398,6 @@ module.exports.update = async (req, res) => {
     };
     product.photos.push(photo);
   });
-  req.folderName &&
-    removeFolder(baseUrl() + "/uploads/products/" + req.folderName);
   await product.save();
   res.status(200).send(product);
 };
