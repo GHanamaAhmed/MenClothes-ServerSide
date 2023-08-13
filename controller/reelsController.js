@@ -29,6 +29,7 @@ const {
 const likeModel = require("../models/likeModel");
 const { default: mongoose } = require("mongoose");
 const commentModel = require("../models/commentModel");
+const reelModel = require("../models/reelModel");
 
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
@@ -84,6 +85,11 @@ module.exports.fetchAll = async (req, res) => {
     const { id } = req.params;
     const userId = req?.user?._id;
     const reels = await ReelModel.aggregate([
+      {
+        $project: {
+          viewsUsersIds: 0,
+        },
+      },
       {
         $match: {
           _id: { $ne: new mongoose.Types.ObjectId(id) },
@@ -197,6 +203,11 @@ module.exports.fetchAll = async (req, res) => {
     ]);
     const firstReel = await ReelModel.aggregate([
       {
+        $project: {
+          viewsUsersIds: 0,
+        },
+      },
+      {
         $match: {
           _id: new mongoose.Types.ObjectId(id),
         },
@@ -308,6 +319,207 @@ module.exports.fetchAll = async (req, res) => {
     res.status(400).send(e);
   }
 };
+module.exports.fetchAllAdmin = async (req, res) => {
+  const { error } = rangeValidate.validate(req.query);
+  if (error) return res.status(400).send(error.message);
+  const validate = fetchOneValidateOP.validate(req.params);
+  if (validate.error) return res.status(400).send(validate.error.message);
+  const { max, min } = req.query;
+  const { id } = req.params;
+  const userId = req?.user?._id;
+  const reels = await ReelModel.aggregate([
+    {
+      $match: {
+        _id: { $ne: new mongoose.Types.ObjectId(id) },
+      },
+    },
+    {
+      $lookup: {
+        from: "likes",
+        let: { idReel: "$_id" },
+        pipeline: [
+          {
+            $match: {
+              $expr: {
+                $and: [
+                  { $eq: ["$postId", "$$idReel"] },
+                  { $eq: ["$type", "reel"] },
+                ],
+              },
+            },
+          },
+        ],
+        as: "likes",
+      },
+    },
+    {
+      $addFields: {
+        likes: { $size: "$likes" },
+      },
+    },
+    {
+      $lookup: {
+        from: "comments",
+        let: { idReel: "$_id" },
+        pipeline: [
+          {
+            $match: {
+              $expr: {
+                $and: [
+                  { $eq: ["$postId", "$$idReel"] },
+                  { $eq: ["$type", "reel"] },
+                ],
+              },
+            },
+          },
+          {
+            $project: {
+              _id: 1,
+            },
+          },
+        ],
+        as: "comments",
+      },
+    },
+    {
+      $addFields: {
+        comments: { $size: "$comments" },
+      },
+    },
+    {
+      $lookup: {
+        from: "products",
+        let: { productId: "$productId" },
+        pipeline: [
+          {
+            $match: {
+              $expr: {
+                $and: [{ $eq: ["$_id", "$$productId"] }],
+              },
+            },
+          },
+        ],
+        as: "productId",
+      },
+    },
+    {
+      $addFields: {
+        price: { $arrayElemAt: ["$productId.price", 0] },
+        productId: { $arrayElemAt: ["$productId._id", 0] },
+        views: {
+          $size: { $ifNull: ["$viewsUsersIds", []] },
+        },
+      },
+    },
+    {
+      $project: {
+        viewsUsersIds: 0,
+      },
+    },
+    { $skip: Number(min) > 0 ? Number(min) : 0 },
+    {
+      $limit:
+        Number(max) > 0 ? Number(max) : Number(min) > 0 ? Number(min) + 3 : 3,
+    },
+  ]);
+  const firstReel = await ReelModel.aggregate([
+    {
+      $project: {
+        viewsUsersIds: 0,
+      },
+    },
+    {
+      $match: {
+        _id: new mongoose.Types.ObjectId(id),
+      },
+    },
+    {
+      $lookup: {
+        from: "likes",
+        let: { idReel: "$_id" },
+        pipeline: [
+          {
+            $match: {
+              $expr: {
+                $and: [
+                  { $eq: ["$postId", "$$idReel"] },
+                  { $eq: ["$type", "reel"] },
+                ],
+              },
+            },
+          },
+        ],
+        as: "likes",
+      },
+    },
+    {
+      $addFields: {
+        likes: { $size: "$likes" },
+      },
+    },
+    {
+      $lookup: {
+        from: "comments",
+        let: { idReel: "$_id" },
+        pipeline: [
+          {
+            $match: {
+              $expr: {
+                $and: [
+                  { $eq: ["$postId", "$$idReel"] },
+                  { $eq: ["$type", "reel"] },
+                ],
+              },
+            },
+          },
+          {
+            $project: {
+              _id: 1,
+            },
+          },
+        ],
+        as: "comments",
+      },
+    },
+    {
+      $addFields: {
+        comments: { $size: "$comments" },
+      },
+    },
+    {
+      $lookup: {
+        from: "products",
+        let: { productId: "$productId" },
+        pipeline: [
+          {
+            $match: {
+              $expr: {
+                $and: [{ $eq: ["$_id", "$$productId"] }],
+              },
+            },
+          },
+        ],
+        as: "productId",
+      },
+    },
+    {
+      $addFields: {
+        price: { $arrayElemAt: ["$productId.price", 0] },
+        productId: { $arrayElemAt: ["$productId._id", 0] },
+        views: {
+          $size: { $ifNull: ["$viewsUsersIds", []] },
+        },
+      },
+    },
+    {
+      $project: {
+        viewsUsersIds: 0,
+      },
+    },
+  ]);
+  firstReel?.length > 0 && reels.unshift(...firstReel);
+  return res.status(200).send(reels);
+};
 module.exports.add = async (req, res, next) => {
   try {
     const { error } = addReelValidate.validate(req.body);
@@ -358,6 +570,7 @@ module.exports.delete = async (req, res) => {
     removeFileUrl(reel?.video);
     removeFileUrl(reel?.thumbanil);
     await likeModel.findOneAndDelete({ postId: reel?._id, type: "reel" });
+    await commentModel.findOneAndDelete({ postId: reel?._id, type: "reel" });
     return res.status(200).send(reel);
   } catch (e) {
     res.status(400).send(e);
@@ -454,6 +667,18 @@ module.exports.statistique = async (req, res) => {
       comment,
       lastComment,
     });
+  } catch (e) {
+    res.status(400).send(e);
+  }
+};
+
+module.exports.addView = async (req, res) => {
+  try {
+    const { userId, reelId } = req.body;
+    const reel = await reelModel.findById(reelId);
+    reel.viewsUsersIds.push({ userId: userId || "anonyme" });
+    await reel.save();
+    res.status(200).send();
   } catch (e) {
     res.status(400).send(e);
   }

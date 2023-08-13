@@ -30,6 +30,7 @@ const mongoose = require("mongoose");
 const basketModel = require("../models/basketModel");
 const productModel = require("../models/productModel");
 const orderModel = require("../models/orderModel");
+const commentModel = require("../models/commentModel");
 
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
@@ -336,7 +337,10 @@ module.exports.delete = async (req, res) => {
       }
     }
     await likeModel.findOneAndDelete({ postId: product._id, type: "product" });
-    await basketModel.findOneAndDelete({ productId: product._id });
+    await commentModel.findOneAndDelete({
+      postId: product._id,
+      type: "product",
+    });
     res.status(200).send(product);
   } catch (e) {
     res.status(400).send(e);

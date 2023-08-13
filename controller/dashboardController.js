@@ -163,6 +163,13 @@ module.exports.statictique = async (req, res) => {
         createAt: { $gte: new Date(Date.now() - 30 * 1000 * 60 * 60 * 24) },
       })
       .count();
+    const likesReel = await likeModel.find({ type: "reel" }).count();
+    const lastLikesReel = await likeModel
+      .find({
+        type: "reel",
+        createAt: { $gte: new Date(Date.now() - 30 * 1000 * 60 * 60 * 24) },
+      })
+      .count();
     const likes = await likeModel.find({ type: "product" }).count();
     const lastLikes = await likeModel
       .find({
@@ -170,7 +177,6 @@ module.exports.statictique = async (req, res) => {
         createAt: { $gte: new Date(Date.now() - 30 * 1000 * 60 * 60 * 24) },
       })
       .count();
-
     const returns = await orderModel.find({ states: "return" }).count();
     const lastReturns = await orderModel
       .find({
@@ -232,6 +238,7 @@ module.exports.statictique = async (req, res) => {
         createAt: { $gte: new Date(Date.now() - 30 * 1000 * 60 * 60 * 24) },
       })
       .then((res) => res.length);
+   
     res.status(200).json({
       users,
       sales,
@@ -263,6 +270,9 @@ module.exports.statictique = async (req, res) => {
       products,
       lastProducts,
       lastView,
+      likesReel,
+      lastLikesReel,
+
     });
   } catch (e) {
     res.status(400).send(e);
