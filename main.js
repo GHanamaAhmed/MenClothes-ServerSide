@@ -24,7 +24,6 @@ const cities = require("./routes/cities/cities");
 const statistique = require("./routes/statistique/statistique");
 const info = require("./routes/info/info");
 
-
 const app = express();
 const port = 4000;
 
@@ -39,12 +38,22 @@ require("./models/orderModel");
 require("./models/productModel");
 require("./models/reelModel");
 require("./models/userModel");
-require("./models/viewsModel")
-require("./models/couponModel")
-require("./models/orderModel")
+require("./models/viewsModel");
+require("./models/couponModel");
+require("./models/orderModel");
 
 //basic middleware
-app.use(cors({ origin: ["http://localhost:3000","http://localhost:8090"], credentials: true }));
+app.use(
+  cors({
+    origin: [
+      "http://localhost:3000",
+      "http://localhost:8090",
+      "http://fri7a.com",
+      "https://fri7a.com",
+    ],
+    credentials: true,
+  })
+);
 app.use(helmet());
 app.use(cookieParser());
 app.use(express.json());

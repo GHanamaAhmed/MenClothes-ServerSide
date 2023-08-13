@@ -35,9 +35,14 @@ module.exports.statictique = async (req, res) => {
     const profits = await orderModel
       .aggregate([
         {
+          $match: {
+            states: "completed",
+          },
+        },
+        {
           $group: {
             _id: null,
-            prfits: { $sum: "$price" },
+            prfits: { $sum: { $toDouble: "$price" } },
           },
         },
       ])
@@ -55,7 +60,7 @@ module.exports.statictique = async (req, res) => {
         {
           $group: {
             _id: null,
-            prfits: { $sum: "$price" },
+            prfits: { $sum: { $toDouble: "$price" } },
           },
         },
       ])

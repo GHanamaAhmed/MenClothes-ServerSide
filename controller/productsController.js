@@ -330,7 +330,7 @@ module.exports.delete = async (req, res) => {
     const pathName = path.resolve(__dirname, "../" + product?.path);
     if (fs.existsSync(pathName) && product?.path) {
       try {
-        removeFolder(pathName);
+        deleteFolderRecursive(pathName);
       } catch (error) {
         return res.status(500).send(error);
       }
@@ -357,10 +357,8 @@ module.exports.update = async (req, res) => {
       } else if (req.files?.thumbanil?.length) {
         delPath = baseUrl() + "/" + req.files?.thumbanil[0]?.destination;
       }
-      removeFolder(delPath);
-      return res
-        .status(400)
-        .send(error?.message || "thumbanil field is require!");
+      deleteFolderRecursive(delPath);
+      return res.status(400).send(error?.message || "يجب اضافة صورة المنتج!");
     }
     const id = body?.id;
     delete body?.id;
