@@ -37,6 +37,19 @@ const updateProductValidate = joi.object({
   showPrice: joi.boolean(),
   showPromotion: joi.boolean(),
 });
+const updateProductValidate2 = joi.object({
+  id: objectId.required(),
+  name: joi.string().max(100),
+  reelId: objectId,
+  quntity: joi.number().min(0),
+  price: joi.number(),
+  promotion: joi.number(),
+  type: joi.string(),
+  description: joi.string(),
+  status: joi.boolean(),
+  showPrice: joi.boolean(),
+  showPromotion: joi.boolean(),
+});
 const likeProductValidate = joi.object({
   idUser: objectId.required(),
   idProduct: objectId.required(),
@@ -52,4 +65,5 @@ module.exports = {
   commentProductValidate,
   likeProductValidate,
   updateProductValidate,
+  updateProductValidate2
 };

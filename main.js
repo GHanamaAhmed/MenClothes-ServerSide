@@ -22,6 +22,7 @@ const coupon = require("./routes/coupon/coupon");
 const order = require("./routes/order/order");
 const cities = require("./routes/cities/cities");
 const statistique = require("./routes/statistique/statistique");
+const info = require("./routes/info/info");
 
 
 const app = express();
@@ -96,6 +97,8 @@ app.use("/orders", order);
 app.use("/cities", cities);
 //Route statistique
 app.use("/statistique", statistique);
+//Route info
+app.use("/info", info);
 
 dbConnect()
   .then((res) => {

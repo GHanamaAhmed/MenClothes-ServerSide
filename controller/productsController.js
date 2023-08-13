@@ -11,6 +11,7 @@ const { v4: uuid } = require("uuid");
 const {
   addProductValidate,
   updateProductValidate,
+  updateProductValidate2,
 } = require("../utils/validate/productValidate");
 const sharp = require("sharp");
 const {
@@ -399,6 +400,21 @@ module.exports.update = async (req, res) => {
     product.photos.push(photo);
   });
   await product.save();
+  res.status(200).send(product);
+};
+module.exports.update2 = async (req, res) => {
+  const body = req.body;
+  const { error } = updateProductValidate2.validate(body);
+  if (error) return res.states(400).send(error.message);
+  const id = body?.id;
+  delete body?.id;
+  const product = await ProductModel.findByIdAndUpdate(
+    id,
+    {
+      $set: { ...body },
+    },
+    { new: true }
+  );
   res.status(200).send(product);
 };
 module.exports.statstique = async (req, res) => {

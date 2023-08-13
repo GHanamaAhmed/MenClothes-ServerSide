@@ -5,7 +5,13 @@ const viewsSchema = new mongoose.Schema({
   },
   counter: {
     type: Number,
-    required: true,
+  },
+  sessionId: {
+    type: String,
+  },
+  createAt: {
+    type: Date,
+    default: Date.now(),
   },
 });
 module.exports = mongoose.model("views", viewsSchema);

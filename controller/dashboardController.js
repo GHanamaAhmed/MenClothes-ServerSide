@@ -60,8 +60,8 @@ module.exports.statictique = async (req, res) => {
     ])
     .then((res) => res[0]?.prfits || 0);
   const views = await viewsModel
-    .findOne({ page: { $exists: false } })
-    .then((res) => res.counter);
+    .find({ page: { $exists: false } })
+    .then((res) => res.length);
 
   const coupon = await couponModel.find({}).count();
   const lastCoupon = await couponModel
@@ -129,7 +129,7 @@ module.exports.statictique = async (req, res) => {
         },
       },
     ])
-    .then((res) => res?.[0]?.count||0);
+    .then((res) => res?.[0]?.count || 0);
   const lastCouponSales = await orderModel
     .aggregate([
       {
@@ -142,7 +142,7 @@ module.exports.statictique = async (req, res) => {
       {
         $group: {
           _id: null,
-          count:  { $sum: { $toDouble: "$disCount.price" } },
+          count: { $sum: { $toDouble: "$disCount.price" } },
         },
       },
     ])
@@ -217,6 +217,13 @@ module.exports.statictique = async (req, res) => {
       },
     ])
     .then((data) => data.length && (data[0]?.views || 0));
+
+  const lastView = await viewsModel
+    .find({
+      page: { $exists: false },
+      createAt: { $gte: new Date(Date.now() - 30 * 1000 * 60 * 60 * 24) },
+    })
+    .then((res) => res.length);
   res.status(200).json({
     users,
     sales,
@@ -247,5 +254,6 @@ module.exports.statictique = async (req, res) => {
     lastViewsReels,
     products,
     lastProducts,
+    lastView,
   });
 };

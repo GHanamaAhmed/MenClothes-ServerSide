@@ -25,6 +25,7 @@ router
     ]),
     products.update
   );
+router.put("/update", products.update2);
 router.get("/product/:id?", products.fetchOne);
 router.get("/count", products.count);
 router.get("/statistique", products.statstique);
