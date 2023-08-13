@@ -5,5 +5,6 @@ module.exports.fetchWilaya = async (req, res) => {
 };
 module.exports.fetchBaladya = async (req, res) => {
   const { id } = req.params;
-  res.status(200).send(baladya.filter((e) => (e.wilaya_id == id)));
+  if (!id) return res.status(400).send("ادخل الولاية اولا");
+  res.status(200).send(baladya.filter((e) => e.wilaya_id == id));
 };
