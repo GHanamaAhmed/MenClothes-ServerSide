@@ -27,7 +27,7 @@ const removeFileUrl = (route) => {
   if (redUrl.includes(convertUrlToPath(route))) return;
   if (fs.existsSync(convertUrlToPath(route))) {
     try {
-      fs.unlinkSync(convertUrlToPath(route),{});
+      fs.unlinkSync(convertUrlToPath(route));
     } catch (error) {
       console.log(error);
     }

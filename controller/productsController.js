@@ -415,7 +415,9 @@ module.exports.update = async (req, res) => {
           await sharp(convertUrlToPath(oldPath))
             .webp()
             .toFile(newPath.replace(`${process.env.DOMAIN_NAME}/`, ""));
-          removeFileUrl(convertUrlToPath(oldPath));
+          setTimeout(() => {
+            removeFileUrl(convertUrlToPath(oldPath));
+          }, 2000);
         });
       const photo = {
         photos: newPaths,
