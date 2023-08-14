@@ -21,6 +21,7 @@ const {
   baseUrl,
   convertUrlToPath,
   removeFile,
+  removeFolderUrl,
 } = require("../utils/files/files");
 const {
   addReelValidate,
@@ -30,6 +31,7 @@ const likeModel = require("../models/likeModel");
 const { default: mongoose } = require("mongoose");
 const commentModel = require("../models/commentModel");
 const reelModel = require("../models/reelModel");
+const Ffmpeg = require("../utils/ffmpeg/ffmpeg");
 
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
@@ -81,7 +83,7 @@ module.exports.fetchAll = async (req, res) => {
     if (error) return res.status(400).send(error.message);
     const validate = fetchOneValidateOP.validate(req.params);
     if (validate.error) return res.status(400).send(validate.error.message);
-    const { max, min } = req.query;
+    const { max, min, reverse } = req.query;
     const { id } = req.params;
     const userId = req?.user?._id;
     const reels = await ReelModel.aggregate([
@@ -195,6 +197,7 @@ module.exports.fetchAll = async (req, res) => {
           productId: { $arrayElemAt: ["$productId._id", 0] },
         },
       },
+      { $sort: { createAt: reverse ? 1 : -1 } },
       { $skip: Number(min) > 0 ? Number(min) : 0 },
       {
         $limit:
@@ -324,9 +327,8 @@ module.exports.fetchAllAdmin = async (req, res) => {
   if (error) return res.status(400).send(error.message);
   const validate = fetchOneValidateOP.validate(req.params);
   if (validate.error) return res.status(400).send(validate.error.message);
-  const { max, min } = req.query;
+  const { max, min, reverse } = req.query;
   const { id } = req.params;
-  const userId = req?.user?._id;
   const reels = await ReelModel.aggregate([
     {
       $match: {
@@ -416,6 +418,7 @@ module.exports.fetchAllAdmin = async (req, res) => {
         viewsUsersIds: 0,
       },
     },
+    { $sort: { createAt: reverse ? 1 : -1 } },
     { $skip: Number(min) > 0 ? Number(min) : 0 },
     {
       $limit:
@@ -535,21 +538,36 @@ module.exports.add = async (req, res, next) => {
       ...req.body,
     });
     if (req.file) {
-      const Path = `${process.env.DOMAIN_NAME}/${req.file.destination}/${req.file.filename}`;
+      const Path = `${process.env.DOMAIN_NAME}/${req.file.destination}/${
+        req.file.filename.split(".")[0]
+      }-852×480.mp4`;
+      const prevPath = `${process.env.DOMAIN_NAME}/${req.file.destination}/${req.file.filename}`;
       reel.video = Path;
       const thumbanilName = `thumbanil+${uuid()}.webp`;
       const thumbanilUrl = `${process.env.DOMAIN_NAME}/${req.file.destination}/thumbanils/${thumbanilName}`;
-      ffmpeg(`${baseUrl()}/${req.file.destination}/${req.file.filename}`)
+      ffmpeg(convertUrlToPath(prevPath))
         .thumbnail({
           timestamps: ["50%"],
           folder: "uploads/reels/thumbanils",
           filename: thumbanilName,
+          size: "480x640",
         })
         .toFormat("webp")
         .on("end", async () => {
           reel.thumbanil = thumbanilUrl;
-          await reel.save();
-          return res.status(200).send(reel);
+          Ffmpeg(convertUrlToPath(prevPath))
+            .videoCodec("libx264")
+            .size("640x?")
+            .aspect("9:19")
+            .on("end", async function () {
+              removeFolder(convertUrlToPath(prevPath));
+              setTimeout(() => {
+                removeFile(convertUrlToPath(prevPath));
+              }, 5000);
+              await reel.save();
+              return res.status(200).send(reel);
+            })
+            .save(convertUrlToPath(Path));
         });
     }
   } catch (error) {
@@ -567,8 +585,8 @@ module.exports.delete = async (req, res) => {
       new: true,
     });
     if (!reel) return res.status(404).send("reel dont exist!");
-    removeFileUrl(reel?.video);
-    removeFileUrl(reel?.thumbanil);
+    removeFolderUrl(reel?.video);
+    removeFolderUrl(reel?.thumbanil);
     await likeModel.findOneAndDelete({ postId: reel?._id, type: "reel" });
     await commentModel.findOneAndDelete({ postId: reel?._id, type: "reel" });
     return res.status(200).send(reel);

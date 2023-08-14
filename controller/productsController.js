@@ -435,20 +435,30 @@ module.exports.update = async (req, res) => {
 module.exports.update2 = async (req, res) => {
   try {
     const body = req.body;
-    const { error } = updateProductValidate2.validate(body);
-    if (error) return res.states(400).send(error.message);
-    const id = body?.id;
-    delete body?.id;
-    const product = await ProductModel.findByIdAndUpdate(
-      id,
-      {
-        $set: { ...body },
-      },
-      { new: true }
-    );
+    const { promotion, id } = body;
+    if (!id) return res.status(400).send("id is Required!");
+    let product;
+    if (promotion) {
+      product = await ProductModel.findByIdAndUpdate(
+        id,
+        {
+          $set: { promotion: promotion, showPromotion: true },
+        },
+        { new: true }
+      );
+    } else {
+      product = await ProductModel.findByIdAndUpdate(
+        id,
+        {
+          $unset: { promotion: 1 },
+          $set: { showPromotion: false },
+        },
+        { new: true }
+      );
+    }
     res.status(200).send(product);
   } catch (e) {
-    res.status(400).send(e);
+    res.status(200).send(e);
   }
 };
 module.exports.statstique = async (req, res) => {

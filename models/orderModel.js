@@ -96,25 +96,26 @@ orderSchema.pre("save", async function (next) {
       });
       let price = productsPrices.reduce((sum, num) => sum + num, 0);
       const coupon = await couponModel.findOne({ code: this.coupon });
-      if (coupon?.max || coupon?.expireAt) {
-        if (
+      if (
+        coupon?.max ||
+        (coupon?.expireAt &&
           !(
             coupon?.max + 1 < coupon?.count ||
             coupon?.expireAt - coupon.createAt <= 0
-          )
-        ) {
-          if (coupon.porcent) {
-            this.price = price * (1 - coupon.porcent);
-            this.disCount.type = "porcent";
-            this.disCount.price = price - price * (1 - coupon.porcent);
-          } else {
-            this.price = price - coupon.price;
-            this.disCount.type = "price";
-            this.disCount.price = price - (price - coupon.price);
-          }
+          ))
+      ) {
+        if (coupon.porcent) {
+          this.price = price * (1 - coupon.porcent);
+          this.disCount.type = "porcent";
+          this.disCount.price = price - price * (1 - coupon.porcent);
+        } else {
+          this.price = price - coupon.price;
+          this.disCount.type = "price";
+          this.disCount.price = price - (price - coupon.price);
         }
+      } else {
+        this.price = price;
       }
-      this.price = price;
     }
   }
   next();
