@@ -7,6 +7,7 @@ const {
 const likeModel = require("../models/likeModel");
 const orderModel = require("../models/orderModel");
 const { default: mongoose } = require("mongoose");
+const productModel = require("../models/productModel");
 
 module.exports.postOrder = async (req, res) => {
   try {
@@ -96,11 +97,42 @@ module.exports.updateOrder = async (req, res) => {
     const body = req.body;
     const id = body.id;
     delete body.id;
-    const o = await orderModel.findByIdAndUpdate(
-      id,
-      { $set: { ...body } },
-      { new: true }
-    );
+    const order2 = await orderModel.findByIdAndUpdate(id, {
+      $set: { ...body },
+    });
+    const states = body?.states;
+    // change quntity after order changed
+    if (states == "completed" || states == "accepted") {
+      await Promise.all(
+        order2.productsIds.map(async (e) => {
+          const prod = await productModel.findById(e.id);
+          await Promise.all(
+            prod.photos.map(async (el) => {
+              if (el.color == e.color && el.sizes.includes(e.size)) {
+                el.quntity = el.quntity - e.quntity || 0;
+              }
+              await prod.save();
+            })
+          );
+        })
+      );
+    } else {
+      if (order2.states == "completed" || order2.states == "accepted") {
+        await Promise.all(
+          order2.productsIds.map(async (e) => {
+            const prod = await productModel.findById(e.id);
+            await Promise.all(
+              prod.photos.map(async (el) => {
+                if (el.color == e.color && el.sizes.includes(e.size)) {
+                  el.quntity = el.quntity + e.quntity;
+                }
+                await prod.save();
+              })
+            );
+          })
+        );
+      }
+    }
     const order = await orderModel
       .aggregate([
         {
