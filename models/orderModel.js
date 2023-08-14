@@ -54,12 +54,15 @@ const orderSchema = new mongoose.Schema({
     },
   },
   price: {
-    type: String,
+    type: Number,
   },
   delivery: {
     type: String,
     enum: ["deleveryAgency", "homeDelivery"],
     default: "deleveryAgency",
+  },
+  shipping: {
+    type: Number,
   },
   states: {
     type: String,
