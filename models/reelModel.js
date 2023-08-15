@@ -10,9 +10,8 @@ const reelSchema = new mongoose.Schema({
     default: Date.now(),
   },
   viewsUsersIds: {
-    type: [mongoose.Schema.Types.ObjectId],
+    type: [{ createAt: { type: Date, default: Date.now() }, userId: String }],
     required: false,
-    ref: "user",
   },
   productId: {
     type: mongoose.Schema.Types.ObjectId,

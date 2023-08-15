@@ -2,7 +2,10 @@ const router = require("express").Router();
 const { authMiddleware, isAdmin } = require("../../middlewares/middlewareAuth");
 const reels = require("../../controller/reelsController");
 const { MulterError } = require("multer");
+router.get("/statistique", reels.statistique);
+router.post("/addView", reels.addView);
 router.route("/reel/:id").get(reels.fetchOne);
+router.route("/admin").get(reels.fetchAllAdmin);
 router
   .route("/:id?")
   .get(reels.fetchAll)

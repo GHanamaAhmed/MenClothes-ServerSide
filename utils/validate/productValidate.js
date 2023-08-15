@@ -1,9 +1,9 @@
 const joi = require("joi");
 const { objectId } = require("./validateObjctId");
 const details = joi.object().keys({
-  sizes: joi.array(),
-  color: joi.string(),
-  quntity: joi.number(),
+  sizes: joi.array().required(),
+  color: joi.string().required(),
+  quntity: joi.number().required(),
   nPhotos: joi.number().required(),
 });
 const addProductValidate = joi.object({
@@ -11,7 +11,7 @@ const addProductValidate = joi.object({
   reelId: objectId,
   quntity: joi.number().min(0),
   price: joi.number().required(),
-  details: joi.string(),
+  details: joi.array().items(details),
   photos: joi.any(),
   thumbanil: joi.any(),
   promotion: joi.number(),
@@ -29,7 +29,20 @@ const updateProductValidate = joi.object({
   price: joi.number(),
   details: joi.array().items(details),
   photos: joi.any(),
-  thumbanil: joi.any().required(),
+  thumbanil: joi.any(),
+  promotion: joi.number(),
+  type: joi.string(),
+  description: joi.string(),
+  status: joi.boolean(),
+  showPrice: joi.boolean(),
+  showPromotion: joi.boolean(),
+});
+const updateProductValidate2 = joi.object({
+  id: objectId.required(),
+  name: joi.string().max(100),
+  reelId: objectId,
+  quntity: joi.number().min(0),
+  price: joi.number(),
   promotion: joi.number(),
   type: joi.string(),
   description: joi.string(),
@@ -52,4 +65,5 @@ module.exports = {
   commentProductValidate,
   likeProductValidate,
   updateProductValidate,
+  updateProductValidate2
 };

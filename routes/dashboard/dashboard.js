@@ -1,4 +1,5 @@
 const router = require("express").Router();
 const dashboard = require("../../controller/dashboardController");
-router.route("/").get(dashboard.statictique);
+const { isAdmin, authMiddleware } = require("../../middlewares/middlewareAuth");
+router.route("/").get(authMiddleware,isAdmin,dashboard.statictique);
 module.exports=router

@@ -18,6 +18,11 @@ const likes = require("./routes/likes/likes");
 const basket = require("./routes/basket/basket");
 const comments = require("./routes/comments/comments");
 const dashboard = require("./routes/dashboard/dashboard");
+const coupon = require("./routes/coupon/coupon");
+const order = require("./routes/order/order");
+const cities = require("./routes/cities/cities");
+const statistique = require("./routes/statistique/statistique");
+const info = require("./routes/info/info");
 
 const app = express();
 const port = 4000;
@@ -33,9 +38,22 @@ require("./models/orderModel");
 require("./models/productModel");
 require("./models/reelModel");
 require("./models/userModel");
-require("./models/viewsModel")
+require("./models/viewsModel");
+require("./models/couponModel");
+require("./models/orderModel");
+
 //basic middleware
-app.use(cors({ origin: "http://localhost:3000", credentials: true }));
+app.use(
+  cors({
+    origin: [
+      "http://localhost:3000",
+      "http://localhost:8090",
+      "http://fri7a.com",
+      "https://fri7a.com",
+    ],
+    credentials: true,
+  })
+);
 app.use(helmet());
 app.use(cookieParser());
 app.use(express.json());
@@ -80,6 +98,16 @@ app.use("/basket", basket);
 app.use("/comments", comments);
 //Route dashboard
 app.use("/dashboard", dashboard);
+//Route coupon
+app.use("/coupon", coupon);
+//Route order
+app.use("/orders", order);
+//Route cities
+app.use("/cities", cities);
+//Route statistique
+app.use("/statistique", statistique);
+//Route info
+app.use("/info", info);
 
 dbConnect()
   .then((res) => {

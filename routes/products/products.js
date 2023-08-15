@@ -25,8 +25,10 @@ router
     ]),
     products.update
   );
+router.put("/update",authMiddleware,isAdmin, products.update2);
 router.get("/product/:id?", products.fetchOne);
 router.get("/count", products.count);
+router.get("/statistique",authMiddleware,isAdmin, products.statstique);
 router.use((error, req, res, next) => {
   return res.status(400).send(error);
 });

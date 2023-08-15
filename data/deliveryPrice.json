@@ -1,0 +1,284 @@
+[
+  {
+    "num": 1,
+    "wilaya": "Adrar",
+    "tarif_domicile": 1600,
+    "tarif_point_relais": 800
+  },
+  {
+    "num": 2,
+    "wilaya": "Chlef",
+    "tarif_domicile": 900,
+    "tarif_point_relais": 450
+  },
+  {
+    "num": 3,
+    "wilaya": "Laghouat",
+    "tarif_domicile": 1200,
+    "tarif_point_relais": 600
+  },
+  {
+    "num": 4,
+    "wilaya": "Oum El Bouaghi",
+    "tarif_domicile": 900,
+    "tarif_point_relais": 350
+  },
+  {
+    "num": 6,
+    "wilaya": "Béjaïa",
+    "tarif_domicile": 850,
+    "tarif_point_relais": 400
+  },
+  {
+    "num": 7,
+    "wilaya": "Biskra",
+    "tarif_domicile": 850,
+    "tarif_point_relais": 350
+  },
+  {
+    "num": 8,
+    "wilaya": "Béchar",
+    "tarif_domicile": 1400,
+    "tarif_point_relais": 800
+  },
+  {
+    "num": 9,
+    "wilaya": "Blida",
+    "tarif_domicile": 800,
+    "tarif_point_relais": 350
+  },
+  {
+    "num": 10,
+    "wilaya": "Bouira",
+    "tarif_domicile": 850,
+    "tarif_point_relais": 400
+  },
+  {
+    "num": 11,
+    "wilaya": "Tamanrasset",
+    "tarif_domicile": 1600,
+    "tarif_point_relais": 1000
+  },
+  {
+    "num": 12,
+    "wilaya": "Tébessa",
+    "tarif_domicile": 800,
+    "tarif_point_relais": 600
+  },
+  {
+    "num": 13,
+    "wilaya": "Tlemcen",
+    "tarif_domicile": 900,
+    "tarif_point_relais": 350
+  },
+  {
+    "num": 14,
+    "wilaya": "Tiaret",
+    "tarif_domicile": 950,
+    "tarif_point_relais": 400
+  },
+  {
+    "num": 15,
+    "wilaya": "Tizi Ouzou",
+    "tarif_domicile": 850,
+    "tarif_point_relais": 400
+  },
+  {
+    "num": 16,
+    "wilaya": "Alger",
+    "tarif_domicile": 750,
+    "tarif_point_relais": 350
+  },
+  {
+    "num": 17,
+    "wilaya": "Djelfa",
+    "tarif_domicile": 1200,
+    "tarif_point_relais": 600
+  },
+  {
+    "num": 18,
+    "wilaya": "Jijel",
+    "tarif_domicile": 850,
+    "tarif_point_relais": 400
+  },
+  {
+    "num": 19,
+    "wilaya": "Sétif",
+    "tarif_domicile": 850,
+    "tarif_point_relais": 350
+  },
+  {
+    "num": 20,
+    "wilaya": "Saïda",
+    "tarif_domicile": 1000,
+    "tarif_point_relais": 400
+  },
+  {
+    "num": 21,
+    "wilaya": "Skikda",
+    "tarif_domicile": 850,
+    "tarif_point_relais": 400
+  },
+  {
+    "num": 22,
+    "wilaya": "Sidi Bel Abbès",
+    "tarif_domicile": 900,
+    "tarif_point_relais": 400
+  },
+  {
+    "num": 23,
+    "wilaya": "Annaba",
+    "tarif_domicile": 850,
+    "tarif_point_relais": 350
+  },
+  {
+    "num": 24,
+    "wilaya": "Guelma",
+    "tarif_domicile": 850,
+    "tarif_point_relais": 400
+  },
+  {
+    "num": 25,
+    "wilaya": "Constantine",
+    "tarif_domicile": 850,
+    "tarif_point_relais": 400
+  },
+  {
+    "num": 26,
+    "wilaya": "Médéa",
+    "tarif_domicile": 850,
+    "tarif_point_relais": 400
+  },
+  {
+    "num": 27,
+    "wilaya": "Mostaganem",
+    "tarif_domicile": 900,
+    "tarif_point_relais": 400
+  },
+  {
+    "num": 28,
+    "wilaya": "M’Sila",
+    "tarif_domicile": 900,
+    "tarif_point_relais": 350
+  },
+  {
+    "num": 29,
+    "wilaya": "Mascara",
+    "tarif_domicile": 950,
+    "tarif_point_relais": 400
+  },
+  {
+    "num": 30,
+    "wilaya": "Ouargla",
+    "tarif_domicile": 1200,
+    "tarif_point_relais": 600
+  },
+  {
+    "num": 31,
+    "wilaya": "Oran",
+    "tarif_domicile": 900,
+    "tarif_point_relais": 350
+  },
+  {
+    "num": 32,
+    "wilaya": "El Bayadh",
+    "tarif_domicile": 1400,
+    "tarif_point_relais": 600
+  },
+  {
+    "num": 33,
+    "wilaya": "Illizi",
+    "tarif_domicile": 1800,
+    "tarif_point_relais": 1200
+  },
+  {
+    "num": 34,
+    "wilaya": "Bordj Bou Arreridj",
+    "tarif_domicile": 850,
+    "tarif_point_relais": 400
+  },
+  {
+    "num": 35,
+    "wilaya": "Boumerdès",
+    "tarif_domicile": 650,
+    "tarif_point_relais": 400
+  },
+  {
+    "num": 36,
+    "wilaya": "El Tarf",
+    "tarif_domicile": 850,
+    "tarif_point_relais": 400
+  },
+  {
+    "num": 37,
+    "wilaya": "Tindouf",
+    "tarif_domicile": 1600,
+    "tarif_point_relais": 1000
+  },
+  {
+    "num": 38,
+    "wilaya": "Tissemsilt",
+    "tarif_domicile": 950,
+    "tarif_point_relais": 400
+  },
+  {
+    "num": 39,
+    "wilaya": "El Oued",
+    "tarif_domicile": 1000,
+    "tarif_point_relais": 600
+  },
+  {
+    "num": 40,
+    "wilaya": "Khenchela",
+    "tarif_domicile": 800,
+    "tarif_point_relais": 350
+  },
+  {
+    "num": 41,
+    "wilaya": "Souk Ahras",
+    "tarif_domicile": 850,
+    "tarif_point_relais": 400
+  },
+  {
+    "num": 42,
+    "wilaya": "Tipaza",
+    "tarif_domicile": 850,
+    "tarif_point_relais": 350
+  },
+  {
+    "num": 43,
+    "wilaya": "Mila",
+    "tarif_domicile": 800,
+    "tarif_point_relais": 350
+  },
+  {
+    "num": 44,
+    "wilaya": "Aïn Defla",
+    "tarif_domicile": 900,
+    "tarif_point_relais": 400
+  },
+  {
+    "num": 45,
+    "wilaya": "Naâma",
+    "tarif_domicile": 1400,
+    "tarif_point_relais": 800
+  },
+  {
+    "num": 46,
+    "wilaya": "Aïn Témouchent",
+    "tarif_domicile": 950,
+    "tarif_point_relais": 400
+  },
+  {
+    "num": 47,
+    "wilaya": "Ghardaïa",
+    "tarif_domicile": 1200,
+    "tarif_point_relais": 600
+  },
+  {
+    "num": 48,
+    "wilaya": "Relizane",
+    "tarif_domicile": 950,
+    "tarif_point_relais": 400
+  }
+]

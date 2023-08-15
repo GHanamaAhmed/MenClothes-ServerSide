@@ -67,11 +67,11 @@ const removeFile = (route) => {
     }
   }
 };
-const removeFolder = (route) => {
+const removeFolder =  (route) => {
   if (redUrl.includes(route)) return;
   if (fs.existsSync(route)) {
     try {
-      fs.rm(
+       fs.rm(
         route,
         {
           recursive: true,
