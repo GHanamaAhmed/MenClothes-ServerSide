@@ -91,83 +91,91 @@ module.exports.getOrder = async (req, res) => {
   }
 };
 module.exports.updateOrder = async (req, res) => {
-  try {
-    const { error } = updateOrderValidate.validate(req.body);
-    if (error) return res.status(400).send(error.message);
-    const body = req.body;
-    const id = body.id;
-    delete body.id;
-    const order2 = await orderModel.findByIdAndUpdate(id, {
-      $set: { ...body },
-    });
-    const states = body?.states;
-    // change quntity after order changed
-    if (states == "completed" || states == "accepted") {
+  const { error } = updateOrderValidate.validate(req.body);
+  if (error) return res.status(400).send(error.message);
+  const body = req.body;
+  const id = body.id;
+  delete body.id;
+  const order2 = await orderModel.findByIdAndUpdate(id, {
+    $set: { ...body },
+  });
+  const states = body?.states;
+  // change quntity after order changed
+  if (states != "removed") {
+    if (
+      order2.states != "completed" &&
+      order2.states != "accepted" &&
+      (states == "completed" || states == "accepted")
+    ) {
       await Promise.all(
         order2.productsIds.map(async (e) => {
           const prod = await productModel.findById(e.id);
+          if (!prod) return;
           await Promise.all(
             prod.photos.map(async (el) => {
               if (el.color == e.color && el.sizes.includes(e.size)) {
                 el.quntity = el.quntity - e.quntity || 0;
               }
-              await prod.save();
             })
           );
+          await prod.save();
         })
       );
     } else {
-      if (order2.states == "completed" || order2.states == "accepted") {
+      if (
+        (order2.states == "completed" || order2.states == "accepted") &&
+        states != "completed" &&
+        states != "accepted"
+      ) {
         await Promise.all(
           order2.productsIds.map(async (e) => {
             const prod = await productModel.findById(e.id);
+            if (!prod) return;
             await Promise.all(
               prod.photos.map(async (el) => {
                 if (el.color == e.color && el.sizes.includes(e.size)) {
                   el.quntity = el.quntity + e.quntity;
                 }
-                await prod.save();
               })
             );
+            await prod.save();
           })
         );
       }
     }
-    const order = await orderModel
-      .aggregate([
-        {
-          $match: {
-            _id: new mongoose.Types.ObjectId(id),
-          },
-        },
-        {
-          $lookup: {
-            from: "orders",
-            let: { userId: "$userId", phone: "$phone" },
-            pipeline: [
-              {
-                $match: {
-                  $expr: {
-                    $or: [{ userId: "$$userId" }, { phone: "$$phone" }],
-                  },
-                },
-              },
-              {
-                $group: {
-                  _id: "$states",
-                  count: { $sum: 1 },
-                },
-              },
-            ],
-            as: "status",
-          },
-        },
-      ])
-      .then((res) => (res.length ? res[0] : null));
-    res.status(200).send(order);
-  } catch (e) {
-    res.status(400).send(e);
   }
+  const order = await orderModel
+    .aggregate([
+      {
+        $match: {
+          _id: new mongoose.Types.ObjectId(id),
+        },
+      },
+      {
+        $lookup: {
+          from: "orders",
+          let: { userId: "$userId", phone: "$phone" },
+          pipeline: [
+            {
+              $match: {
+                $expr: {
+                  $or: [{ userId: "$$userId" }, { phone: "$$phone" }],
+                },
+              },
+            },
+            {
+              $group: {
+                _id: "$states",
+                count: { $sum: 1 },
+              },
+            },
+          ],
+          as: "status",
+        },
+      },
+    ])
+    .then((res) => (res.length ? res[0] : null));
+  res.status(200).send(order);
 };
 module.exports.statstique = async (req, res) => {
   try {

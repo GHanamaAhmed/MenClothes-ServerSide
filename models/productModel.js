@@ -91,11 +91,11 @@ productSchema.pre("save", function (next) {
       this.showPromotion = true;
     }
   }
-  this.quntity = this.photos.reduce((some, e) => some + e.quntity, 0);
+  this.quntity = this.photos.reduce((some, e) => some + (e?.quntity || 0), 0);
   next();
 });
 productSchema.pre("update", function (next) {
-  this.quntity = this.photos.reduce((some, e) => some + e.quntity, 0);
+  this.quntity = this.photos.reduce((some, e) => some + (e?.quntity || 0), 0);
   next();
 });
 module.exports = mongoose.model("product", productSchema);
