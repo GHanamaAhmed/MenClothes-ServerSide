@@ -44,7 +44,12 @@ require("./models/orderModel");
 //basic middleware
 app.use(
   cors({
-    origin: ["http://fri7a.com", "https://fri7a.com"],
+    origin: [
+      "http://localhost:3000",
+      "http://localhost:8090",
+      "http://fri7a.com",
+      "https://fri7a.com",
+    ],
     credentials: true,
   })
 );
