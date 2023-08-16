@@ -10,17 +10,48 @@ const { default: mongoose } = require("mongoose");
 const productModel = require("../models/productModel");
 
 module.exports.postOrder = async (req, res) => {
-  try {
+  // try {
     const { error } = addOrderValidate.validate(req.body);
     if (error) return res.status(400).send(error.message);
+    const products = await Promise.all(
+      req.body.productsIds.map(
+        async (e, i) => await productModel.findById(e.id)
+      )
+    );
+    const restQuntity = products.map(
+      (e, i) =>
+        e.photos[
+          e.photos.findIndex(
+            (e) =>
+              e.color == req.body.productsIds[i].color &&
+              e.sizes.includes(req.body.productsIds[i].size)
+          )
+        ].quntity - req.body.productsIds[i].quntity
+    );
+    console.log(restQuntity);
+    console.log(restQuntity.some((e) => e <= 0));
+    if (restQuntity.some((e) => e < 0)) {
+      const quntity = products.map(
+        (e, i) =>
+          e.photos[
+            e.photos.findIndex(
+              (e) =>
+                e.color == req.body.productsIds[i].color &&
+                e.sizes.includes(req.body.productsIds[i].size)
+            )
+          ].quntity
+      );
+      console.log(quntity);
+      return res.status(200).json({ error: quntity });
+    }
     const order = new orderModel({
       ...req.body,
     });
     await order.save();
     res.status(200).send(order);
-  } catch (e) {
-    res.status(400).send(e);
-  }
+  // } catch (e) {
+  //   res.status(400).send(e);
+  // }
 };
 module.exports.getOrder = async (req, res) => {
   try {

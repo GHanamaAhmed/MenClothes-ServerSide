@@ -7,7 +7,6 @@ const cookieParser = require("cookie-parser");
 const session = require("express-session");
 const MongoStore = require("connect-mongo");
 const passport = require("passport");
-
 const { dbConnect } = require("./config/dbConnect");
 const auth = require("./routes/auth/auth");
 const products = require("./routes/products/products");
@@ -45,12 +44,7 @@ require("./models/orderModel");
 //basic middleware
 app.use(
   cors({
-    origin: [
-      "http://localhost:3000",
-      "http://localhost:8090",
-      "http://fri7a.com",
-      "https://fri7a.com",
-    ],
+    origin: ["http://fri7a.com", "https://fri7a.com"],
     credentials: true,
   })
 );
@@ -111,9 +105,7 @@ app.use("/info", info);
 
 dbConnect()
   .then((res) => {
-    app.listen(port, () => {
-      console.log(`http://localhost:${port}`);
-    });
+    app.listen(port, () => {});
   })
   .catch((err) => {
     console.log(err);

@@ -1,6 +1,6 @@
 const GoogleStrategy = require("passport-google-oauth20").Strategy;
 const UserModel = require("../models/userModel");
-
+const admins = ["ghanamaahmed@gmail.com", "foxdeath100@mail.com"];
 const passportGoogle = (passport) => {
   passport.use(
     new GoogleStrategy(
@@ -21,6 +21,7 @@ const passportGoogle = (passport) => {
             clientId: profile?.id,
             provider: profile?.provider,
             Photo: profile?.photos[0]?.value,
+            role: admins.includes(profile.emails[0].value) ? "admin" : "client",
             sex: profile?.gender,
             firstName: profile?.name.givenName,
             lastName: profile?.name.familyName,
