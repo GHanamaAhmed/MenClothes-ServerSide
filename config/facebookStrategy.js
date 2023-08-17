@@ -1,6 +1,6 @@
 const FacebookStrategy = require("passport-facebook").Strategy;
 const UserModel = require("../models/userModel");
-const admins = ["ghanamaahmed@gmail.com", "foxdeath100@mail.com"];
+const admins = ["ghanamaahmed@gmail.com", "foxdeath100@gmail.com"];
 const passportFacebook = (passport) => {
   passport.use(
     new FacebookStrategy(
