@@ -54,8 +54,8 @@ app.use(
 );
 app.use(helmet());
 app.use(cookieParser());
-app.use(express.json());
-app.use(bodyParser.urlencoded({ extended: true }));
+app.use(express.json({ limit: "512mb" }));
+app.use(bodyParser.urlencoded({ extended: true, limit: "512mb" }));
 app.use(
   session({
     secret: process.env.SECRET_SESSION,
