@@ -15,7 +15,7 @@ const userSchema = new mongoose.Schema({
   email: {
     type: String,
   },
-  birthday:{
+  birthday: {
     type: String,
   },
   role: {
@@ -36,5 +36,9 @@ const userSchema = new mongoose.Schema({
     type: String,
   },
 });
-
+userSchema.pre("save", function (next) {
+  this.firstName = this.firstName.toLowerCase();
+  this.lastName = this.lastName.toLowerCase();
+  next();
+});
 module.exports = mongoose.model("user", userSchema);
