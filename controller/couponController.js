@@ -119,7 +119,7 @@ module.exports.fetchCoupon = async (req, res) => {
     res
       .status(200)
       .send({
-        coupons: coupons.slice(Number(min), Number(max)),
+        coupons: coupons.slice(min, max),
         count: coupons.length,
       });
   } catch (e) {

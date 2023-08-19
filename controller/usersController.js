@@ -73,7 +73,7 @@ module.exports.fetch = async (req, res) => {
     res
       .status(200)
       .send({
-        users: users.slice(Number(min), Number(max)),
+        users: users.slice(min, max),
         count: users.length,
       });
   } catch (e) {

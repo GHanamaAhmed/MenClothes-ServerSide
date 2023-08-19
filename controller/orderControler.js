@@ -110,7 +110,9 @@ module.exports.getOrder = async (req, res) => {
       },
       { $sort: { createAt: reverse ? 1 : -1 } },
     ]);
-    res.status(200).send({orders:orders.slice(Number(min),Number(max)),count:orders.length});
+    res
+      .status(200)
+      .send({ orders: orders.slice(min, max), count: orders.length });
   } catch (e) {
     res.status(400).send(e);
   }

@@ -160,7 +160,7 @@ module.exports.fetch = async (req, res) => {
       },
     ]);
     res.status(200).json({
-      products: products.slice(Number(min), Number(max)),
+      products: products.slice(min, max),
       types: types.map((e) => e?._id),
       count: products.length,
     });
