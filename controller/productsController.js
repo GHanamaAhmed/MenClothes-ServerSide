@@ -146,15 +146,6 @@ module.exports.fetch = async (req, res) => {
         },
       },
       { $sort: { createAt: reverse ? 1 : -1 } },
-      { $skip: Number(min) > 0 ? Number(min) : 0 },
-      {
-        $limit:
-          Number(max) > 0
-            ? Number(max)
-            : Number(min) > 0
-            ? Number(min) + 10
-            : 10,
-      },
     ]);
     const types = await ProductModel.aggregate([
       {
@@ -169,8 +160,9 @@ module.exports.fetch = async (req, res) => {
       },
     ]);
     res.status(200).json({
-      products,
+      products: products.slice(Number(min), Number(max)),
       types: types.map((e) => e?._id),
+      count: products.length,
     });
   } catch (e) {
     res.status(400).send(e);

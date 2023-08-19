@@ -4,4 +4,4 @@ docker-compose*
 Dockerfile
 /uploads/*
 .env
-/
+/config

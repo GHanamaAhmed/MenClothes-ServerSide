@@ -114,17 +114,14 @@ module.exports.fetchCoupon = async (req, res) => {
         },
       },
       { $sort: { createAt: Number(reverse) ? 1 : -1 } },
-      { $skip: Number(min) > 0 ? Number(min) : 0 },
-      {
-        $limit:
-          Number(max) > 0
-            ? Number(max)
-            : Number(min) > 0
-            ? Number(min) + 10
-            : 10,
-      },
     ]);
-    res.status(200).send(coupons);
+    console.log(Number(min), Number(max));
+    res
+      .status(200)
+      .send({
+        coupons: coupons.slice(Number(min), Number(max)),
+        count: coupons.length,
+      });
   } catch (e) {
     res.status(400).send(e);
   }

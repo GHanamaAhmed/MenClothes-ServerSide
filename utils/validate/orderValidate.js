@@ -13,11 +13,21 @@ const addOrderValidate = joi.object({
   userId: objectId,
   productsIds: joi.array().items(productsItem),
   coupon: joi.string(),
-  adress: joi.string().required(),
-  name: joi.string().required(),
-  phone: joi.number().required(),
-  city: joi.string().required(),
-  delivery: joi.string().valid("deleveryAgency", "homeDelivery").required(),
+  adress: joi.string().required().messages({
+    'any.required': `يجب ادخال العنوان`
+  }),
+  name: joi.string().required().messages({
+    'any.required': `يجب ادخال الاسم`
+  }),
+  phone: joi.number().required().messages({
+    'any.required': `يجب ادخال رقم الهاتف`
+  }),
+  city: joi.string().required().messages({
+    'any.required': `يجب ادخال المدينة`
+  }),
+  delivery: joi.string().valid("deleveryAgency", "homeDelivery").required().messages({
+    'any.required': `يجب عليك اختيار طريقة التوصيل`
+  }),
   photo: joi.string(),
   shipping: joi.number(),
 });
