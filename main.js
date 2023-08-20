@@ -49,6 +49,7 @@ app.use(
       "https://fri7a.com",
       "https://dashboard.fri7a.com",
     ],
+    methods: ['GET','POST','DELETE','UPDATE','PUT','PATCH',"HEAD"],
     credentials: true,
   })
 );
