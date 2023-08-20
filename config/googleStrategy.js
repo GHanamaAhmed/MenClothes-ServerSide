@@ -8,7 +8,7 @@ const passportGoogle = (passport) => {
         clientID:
           "960212867626-nd0o9999bm3c0rvmd6ge91gvr4k6ncrs.apps.googleusercontent.com",
         clientSecret: "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",
-        callbackURL: "http://localhost:4000/auth/google/callback",
+        callbackURL: "https://api.fri7a.com/auth/google/callback",
       },
       async (accessToken, refreshToken, profile, done) => {
         let user = await UserModel.findOne({

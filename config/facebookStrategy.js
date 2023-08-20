@@ -7,7 +7,7 @@ const passportFacebook = (passport) => {
       {
         clientID: "658165466186050",
         clientSecret: "2442ed76ce214ce639bc805a741215ca",
-        callbackURL: "/auth/facebook/callback",
+        callbackURL: "https://api.fri7a.com/auth/facebook/callback",
       },
       async (accessToken, refreshToken, profile, done) => {
         let user = await UserModel.findOne({
