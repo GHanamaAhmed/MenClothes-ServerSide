@@ -587,8 +587,8 @@ module.exports.delete = async (req, res) => {
     if (!reel) return res.status(404).send("reel dont exist!");
     removeFolderUrl(reel?.video);
     removeFolderUrl(reel?.thumbanil);
-    await likeModel.findOneAndDelete({ postId: reel?._id, type: "reel" });
-    await commentModel.findOneAndDelete({ postId: reel?._id, type: "reel" });
+    await likeModel.deleteMany({ postId: reel?._id, type: "reel" });
+    await commentModel.deleteMany({ postId: reel?._id, type: "reel" });
     return res.status(200).send(reel);
   } catch (e) {
     res.status(400).send(e);

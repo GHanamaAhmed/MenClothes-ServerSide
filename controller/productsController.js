@@ -328,8 +328,8 @@ module.exports.delete = async (req, res) => {
         return res.status(500).send(error);
       }
     }
-    await likeModel.findOneAndDelete({ postId: product._id, type: "product" });
-    await commentModel.findOneAndDelete({
+    await likeModel.deleteMany({ postId: product._id, type: "product" });
+    await commentModel.deleteMany({
       postId: product._id,
       type: "product",
     });
