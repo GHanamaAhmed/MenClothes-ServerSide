@@ -5,9 +5,9 @@ const passportFacebook = (passport) => {
   passport.use(
     new FacebookStrategy(
       {
-        clientID: "658165466186050",
-        clientSecret: "2442ed76ce214ce639bc805a741215ca",
-        callbackURL: "https://api.fri7a.com/auth/facebook/callback",
+        clientID: process.env.facebookClientID,
+        clientSecret: process.env.facebookClientSecret,
+        callbackURL: process.env.facebookCallbackURL,
       },
       async (accessToken, refreshToken, profile, done) => {
         let user = await UserModel.findOne({

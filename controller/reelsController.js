@@ -608,13 +608,22 @@ module.exports.update = async (req, res, next) => {
     }
     const id = body?.id;
     delete body?.id;
-    const reel = await ReelModel.findByIdAndUpdate(
+    let reel = await ReelModel.findByIdAndUpdate(
       id,
       {
         $set: { ...body },
       },
       { new: true }
     );
+    if (!body?.productId && reel) {
+      reel = await ReelModel.findByIdAndUpdate(
+        id,
+        {
+          $unset: { productId: 1 },
+        },
+        { new: true }
+      );
+    }
     if (!reel) return res.status(404).send("reel dont exist!");
     if (req?.file) {
       reel?.video && removeFileUrl(reel.video);

@@ -4,7 +4,7 @@ const { isAdmin, authMiddleware } = require("../../middlewares/middlewareAuth");
 router
   .route("/")
   .post(order.postOrder)
-  .get(authMiddleware,isAdmin,order.getOrder)
+  .get(order.getOrder)
   .put(authMiddleware,isAdmin,order.updateOrder);
 router.route("/statistique").get(authMiddleware,isAdmin,order.statstique);
 module.exports = router;

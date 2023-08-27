@@ -94,8 +94,12 @@ module.exports.fetchCoupon = async (req, res) => {
                       { $gt: ["$expireAt", 0] },
                     ]
                   : [
-                      { $lt: ["$count", "$max"] },
-                      { $gt: ["$expireAt", new Date()] },
+                      {
+                        $or: [
+                          { $lt: ["$count", "$max"] },
+                          { $gt: ["$expireAt", new Date()] },
+                        ],
+                      },
                     ]
                 : [],
           },
@@ -116,12 +120,10 @@ module.exports.fetchCoupon = async (req, res) => {
       { $sort: { createAt: Number(reverse) ? 1 : -1 } },
     ]);
     console.log(Number(min), Number(max));
-    res
-      .status(200)
-      .send({
-        coupons: coupons.slice(min, max),
-        count: coupons.length,
-      });
+    res.status(200).send({
+      coupons: coupons.slice(min, max),
+      count: coupons.length,
+    });
   } catch (e) {
     res.status(400).send(e);
   }

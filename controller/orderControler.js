@@ -7,8 +7,29 @@ const {
 const likeModel = require("../models/likeModel");
 const orderModel = require("../models/orderModel");
 const { default: mongoose } = require("mongoose");
+const fs = require("fs");
+const path = require("path");
 const productModel = require("../models/productModel");
-
+const nodemailer = require("nodemailer");
+const handlebars = require("handlebars");
+const signature = fs.readFileSync(
+  path.join(process.cwd(), "signature.html"),
+  "utf-8"
+);
+const template = handlebars.compile(signature);
+const htmlToSend = (content) => {
+  let replacements = {
+    content: content,
+  };
+  return template(replacements);
+};
+const formatDate = (date) => {
+  return new Date(date).toLocaleDateString("en-us", {
+    year: "numeric",
+    month: "short",
+    day: "numeric",
+  });
+};
 module.exports.postOrder = async (req, res) => {
   // try {
   const { error } = addOrderValidate.validate(req.body);
@@ -69,8 +90,11 @@ module.exports.getOrder = async (req, res) => {
                     { phone: { $regex: name ? name : "" } },
                     { name: { $regex: name ? name : "" } },
                     { email: { $regex: name ? name : "" } },
-                    { adress: { $regex: name ? name : "" } },
+                    { address: { $regex: name ? name : "" } },
                     { city: { $regex: name ? name : "" } },
+                    {
+                      _id: name ? new mongoose.Types.ObjectId(name) : "",
+                    },
                   ],
                 },
               ]
@@ -81,12 +105,15 @@ module.exports.getOrder = async (req, res) => {
                     { phone: { $regex: name ? name : "" } },
                     { name: { $regex: name ? name : "" } },
                     { email: { $regex: name ? name : "" } },
-                    { adress: { $regex: name ? name : "" } },
+                    { address: { $regex: name ? name : "" } },
                     { city: { $regex: name ? name : "" } },
                   ],
                 },
               ],
         },
+      },
+      {
+        $sort: { createAt: reverse ? 1 : -1 },
       },
       {
         $lookup: {
@@ -95,7 +122,12 @@ module.exports.getOrder = async (req, res) => {
           pipeline: [
             {
               $match: {
-                $expr: { $or: [{ userId: "$$userId" }, { phone: "$$phone" }] },
+                $expr: {
+                  $or: [
+                    { $eq: ["$userId", "$$userId"] },
+                    { $eq: ["$phone", "$$phone"] },
+                  ],
+                },
               },
             },
             {
@@ -108,8 +140,8 @@ module.exports.getOrder = async (req, res) => {
           as: "status",
         },
       },
-      { $sort: { createAt: reverse ? 1 : -1 } },
     ]);
+
     res
       .status(200)
       .send({ orders: orders.slice(min, max), count: orders.length });
@@ -170,6 +202,101 @@ module.exports.updateOrder = async (req, res) => {
         );
       }
     }
+    let transport = nodemailer.createTransport({
+      service: "gmail",
+      auth: {
+        user: process.env.email,
+        pass: process.env.pass,
+      },
+    });
+    if (states == "accepted") {
+      const mes = `تأكيد طلبك في متجرنا ${order2.name}</p>
+      <p>نأمل أن تكون بأتم الصحة والعافية. نود أن نعلمك أن طلبك في متجرنا قد تم استلامه ومعالجته بنجاح.</p>
+      <p>تفاصيل الطلب:</p>
+      <ul>
+          <li>معرف الطلب: ${order2._id}</li>
+          <li>رقم الهاتف: ${order2.phone}</li>
+          <li>تاريخ الطلب: ${formatDate(order2.createAt)}</li>
+          <li>قائمة المنتجات:</li>
+          <ul>
+          ${order2.productsIds.map(
+            (e, i) =>
+              `<li>${i + 1}. الاسم: ${
+                e.name
+              } - اللون:   <div style="height: 10px;width: 10px;background-color:${
+                e.color
+              } ;border-radius: 50%;"></div> - الحجم: ${e.size} - الكمية: ${
+                e.quntity
+              }</li>`
+          )}
+      </ul>
+      </ul>
+      <p>سيتم شحن طلبك في أقرب وقت ممكن.</p>
+      <p>إذا كان لديك أي استفسار أو ملاحظة بخصوص طلبك، فلا تتردد في التواصل معنا عبر وسائل الاتصال المتاحة في الموقع.</p>
+      <p>نشكرك مجددًا على ثقتك في منتجاتنا وخدماتنا. نتطلع إلى خدمتك مرة أخرى في المستقبل.</p>
+      <p>مع خالص التقدير،</p>
+      <p>Fri7a</p>`;
+      let mailOption = {
+        from: process.env.email,
+        to: order2.email,
+        subject: "متجر Fri7a clothes",
+        html: htmlToSend(mes),
+      };
+      transport.sendMail(mailOption, (err, info) => {
+        if (err) {
+          console.log(err);
+        } else {
+          console.log("Email sent: " + info.response);
+        }
+      });
+    }
+    if (states == "rejected") {
+      const rejectionMessage = `
+<p><strong>عذرًا،</strong></p>
+<p>نأسف لإبلاغك بأن طلبك في متجرنا ${
+        order2.name
+      } تم رفضه بسبب عدم توفر الكمية المطلوبة من بعض المنتجات.</p>
+<p>نأمل أن تكون بأتم الصحة والعافية. ونرجو أن نتمكن من تقديم خدمة أفضل لك في المرات القادمة.</p>
+<p>تفاصيل الطلب:</p>
+<ul>
+    <li>معرف الطلب: ${order2._id}</li>
+    <li>رقم الهاتف: ${order2.phone}</li>
+    <li>تاريخ الطلب: ${formatDate(order2.createAt)}</li>
+    <li>قائمة المنتجات:</li>
+    <ul>
+    ${order2.productsIds.map(
+      (e, i) =>
+        `<li>${i + 1}. الاسم: ${
+          e.name
+        } - اللون:   <div style="height: 10px;width: 10px;background-color:${
+          e.color
+        } ;border-radius: 50%;"></div> - الحجم: ${e.size} - الكمية: ${
+          e.quntity
+        }</li>`
+    )}
+    </ul>
+</ul>
+<p>نود أن نقدم لك خيارات أخرى أو ننصحك بزيارة موقعنا لاختيار منتجات أخرى تناسب احتياجاتك.</p>
+<p>إذا كان لديك أي استفسار أو ملاحظة، فلا تتردد في التواصل معنا عبر وسائل الاتصال المتاحة في الموقع.</p>
+<p>نشكرك على تفهمك، ونأمل أن نتمكن من خدمتك في المستقبل.</p>
+<p>مع خالص التقدير،</p>
+<p>Fri7a</p>
+`;
+
+      let mailOption = {
+        from: process.env.email,
+        to: order2.email,
+        subject: "متجر Fri7a clothes",
+        html: htmlToSend(rejectionMessage),
+      };
+      transport.sendMail(mailOption, (err, info) => {
+        if (err) {
+          console.log(err);
+        } else {
+          console.log("Email sent: " + info.response);
+        }
+      });
+    }
   }
   const order = await orderModel
     .aggregate([
@@ -186,7 +313,10 @@ module.exports.updateOrder = async (req, res) => {
             {
               $match: {
                 $expr: {
-                  $or: [{ userId: "$$userId" }, { phone: "$$phone" }],
+                  $or: [
+                    { $eq: ["$userId", "$$userId"] },
+                    { $eq: ["$phone", "$$phone"] },
+                  ],
                 },
               },
             },
