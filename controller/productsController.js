@@ -94,7 +94,7 @@ module.exports.fetch = async (req, res) => {
               ]
             : [{ name: { $regex: name ? name : "" } }],
         },
-      },
+      },{ $sort: { createAt: reverse ? -1 : 1 } },
       {
         $lookup: {
           from: "likes",
@@ -145,7 +145,7 @@ module.exports.fetch = async (req, res) => {
           likes: 0,
         },
       },
-      { $sort: { createAt: reverse ? 1 : -1 } },
+      
     ]);
     const types = await ProductModel.aggregate([
       {
