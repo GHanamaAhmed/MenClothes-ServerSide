@@ -94,7 +94,7 @@ module.exports.fetch = async (req, res) => {
               ]
             : [{ name: { $regex: name ? name : "" } }],
         },
-      },{ $sort: { createAt: reverse ? -1 : 1 } },
+      },{ $sort: { createAt: reverse ? 1 : -1 } },
       {
         $lookup: {
           from: "likes",
