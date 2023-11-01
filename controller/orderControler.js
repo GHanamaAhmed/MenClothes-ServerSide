@@ -31,7 +31,7 @@ const formatDate = (date) => {
   });
 };
 module.exports.postOrder = async (req, res) => {
-  // try {
+   try {
   const { error } = addOrderValidate.validate(req.body);
   if (error) return res.status(400).send(error.message);
   const products = await Promise.all(
@@ -68,9 +68,9 @@ module.exports.postOrder = async (req, res) => {
   });
   await order.save();
   res.status(200).send(order);
-  // } catch (e) {
-  //   res.status(400).send(e);
-  // }
+   } catch (e) {
+     res.status(400).send(e);
+   }
 };
 
 module.exports.getOrder = async (req, res) => {
