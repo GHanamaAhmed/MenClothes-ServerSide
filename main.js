@@ -45,6 +45,7 @@ require("./models/orderModel");
 app.use(
   cors({
     origin: [
+      // "http://localhost:3001",
       "http://fri7a.com",
       "https://fri7a.com",
       "https://dashboard.fri7a.com",

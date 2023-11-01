@@ -204,6 +204,7 @@ module.exports.updateOrder = async (req, res) => {
     }
     let transport = nodemailer.createTransport({
       service: "gmail",
+      port: 587,
       auth: {
         user: process.env.email,
         pass: process.env.pass,
