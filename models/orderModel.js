@@ -42,7 +42,7 @@ const orderSchema = new mongoose.Schema({
   createAt: {
     type: Date,
     required: false,
-    default: Date.now(),
+    default: Date.now,
   },
   coupon: {
     type: String,

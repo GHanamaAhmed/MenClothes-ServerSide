@@ -11,7 +11,7 @@ const viewsSchema = new mongoose.Schema({
   },
   createAt: {
     type: Date,
-    default: Date.now(),
+    default: Date.now,
   },
 });
 module.exports = mongoose.model("views", viewsSchema);

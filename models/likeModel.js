@@ -17,7 +17,7 @@ const likeSchema = new mongoose.Schema({
   createAt: {
     type: Date,
     required: false,
-    default: Date.now(),
+    default: Date.now,
   },
 });
 module.exports = mongoose.model("like", likeSchema);
