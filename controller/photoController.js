@@ -29,7 +29,6 @@ module.exports.fetch = (req, res) => {
       }
       const chunk = 1 * 1e6;
       const start = Number(range.replace(/\D/g, ""));
-      console.log(start);
       const end = Math.min(start + chunk, fileSize - 1);
       const contentLength = end - start + 1;
       const headers = {
